@@ -1,0 +1,23 @@
+I used a lot of resources for this project. First, I used the XML parser 
+that was provided on Piazza in order to base my entire work from. 
+
+I used notes from 
+   http://courses.cs.vt.edu/~cs3114/Spring10/Notes/T07.PRQuadTreeImplementation.pdf
+  in order to have a basic idea of a starting point for my PRQuadTree.
+ 
+ I also used a XMLUnit in order to better test my XML output in JUnit testing
+ for error control. 
+ 
+ Most, if not all, of the sloppy spaghetti code is my own work. And I'm very 
+ proud of it, as only a parent can be.
+ 
+ The Part 2 portion was built heavily, extensively, and almost entirely, from the 
+ canonical release of Part 1. No apologies there. I left as much of the canonical intact
+ as humanly possible.
+ 
+ The AVLGTree code is inspired/blatantly copied from grepcode.com and their TreeMap.java 
+ file. It also heavily draws from the implementation of the AVLTree from 
+ http://users.cis.fiu.edu/~weiss/dsaajava/code/DataStructures/AvlTree.java
+ 
+ The PM3QuadTree implementation is taken from the notes, the canonical, and the 
+ spec.

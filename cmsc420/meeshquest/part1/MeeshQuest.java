@@ -179,7 +179,7 @@ public class MeeshQuest {
 		} else if (name.equals("createCity")) {
 			command.processCreateCity(commandNode);
 		} else if (name.equals("deleteCity")) {
-			command.processDeleteCity(commandNode);
+			//command.processDeleteCity(commandNode);
 		} else if (name.equals("clearAll")) {
 			command.processClearAll(commandNode);
 		} else if (name.equals("listCities")) {
@@ -187,7 +187,7 @@ public class MeeshQuest {
 		} else if (name.equals("mapCity")) {
 			command.processMapCity(commandNode);
 		} else if (name.equals("unmapCity")) {
-			command.processUnmapCity(commandNode);
+			//command.processUnmapCity(commandNode);
 		} else if (name.equals("saveMap")) {
 			command.processSaveMap(commandNode);
 		} else if (name.equals("printPRQuadtree")) {

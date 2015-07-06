@@ -26,10 +26,14 @@ import cmsc420.exception.CityAlreadyMappedException;
 import cmsc420.exception.CityOutOfBoundsException;
 import cmsc420.geom.*;
 import cmsc420.structure.*;
-import cmsc420.structure.prquadtree.PRQuadtree;
-import cmsc420.structure.prquadtree.Node;
-import cmsc420.structure.prquadtree.LeafNode;
-import cmsc420.structure.prquadtree.InternalNode;
+import cmsc420.structure.pmquadtree.PM3QuadTree;
+import cmsc420.structure.pmquadtree.PM3QuadTree.Node;
+import cmsc420.structure.pmquadtree.PM3QuadTree.Black;
+import cmsc420.structure.pmquadtree.PM3QuadTree.Gray;
+//import cmsc420.structure.prquadtree.PRQuadtree;
+//import cmsc420.structure.prquadtree.Node;
+//import cmsc420.structure.prquadtree.LeafNode;
+//import cmsc420.structure.prquadtree.InternalNode;
 
 
 /**
@@ -65,7 +69,9 @@ public class Command {
 			new CityLocationComparator());
 
 	/** stores mapped cities in a spatial data structure */
-	protected final PRQuadtree prQuadtree = new PRQuadtree();
+	//protected final PRQuadtree prQuadtree = new PRQuadtree();
+	
+	protected final PM3QuadTree pmQuadtree = new PM3QuadTree();
 
 	/** spatial width and height of the PR Quadtree */
 	protected int spatialWidth, spatialHeight;
@@ -214,7 +220,7 @@ public class Command {
 				false);
 
 		/* set PR Quadtree range */
-		prQuadtree.setRange(spatialWidth, spatialHeight);
+		pmQuadtree.setRange(spatialWidth, spatialHeight);
 	}
 
 	/**
@@ -256,7 +262,7 @@ public class Command {
 			addSuccessNode(commandNode, parametersNode, outputNode);
 		}
 	}
-
+//This one isn't being processed until Part 3
 	/**
 	 * Processes a deleteCity command. Deletes a city from the dictionary. An
 	 * error occurs if the city does not exist or is currently mapped.
@@ -264,32 +270,32 @@ public class Command {
 	 * @param node
 	 *            deleteCity node being processed
 	 */
-	public void processDeleteCity(final Element node) {
+	/*public void processDeleteCity(final Element node) {
 		final Element commandNode = getCommandNode(node);
 		final Element parametersNode = results.createElement("parameters");
 		final String name = processStringAttribute(node, "name", parametersNode);
 
 		if (!citiesByName.containsKey(name)) {
-			/* city with name does not exist */
+			/* city with name does not exist * /
 			addErrorNode("cityDoesNotExist", commandNode, parametersNode);
 		} else {
-			/* delete city */
+			/* delete city * /
 			final Element outputNode = results.createElement("output");
 			final City deletedCity = citiesByName.get(name);
 
-			if (prQuadtree.contains(name)) {
-				/* city is mapped */
-				prQuadtree.remove(deletedCity);
+			if (pmQuadtree.contains(name)) {
+				/* city is mapped * /
+				pmQuadtree.remove(deletedCity);
 				addCityNode(outputNode, "cityUnmapped", deletedCity);
 			}
 
 			citiesByName.remove(name);
 			citiesByLocation.remove(deletedCity);
 
-			/* add success node to results */
+			/* add success node to results * /
 			addSuccessNode(commandNode, parametersNode, outputNode);
 		}
-	}
+	}*/
 
 	/**
 	 * Clears all the data structures do there are not cities or roads in
@@ -306,7 +312,7 @@ public class Command {
 		/* clear data structures */
 		citiesByName.clear();
 		citiesByLocation.clear();
-		prQuadtree.clear();
+		pmQuadtree.clear();
 
 		/* clear canvas */
 		Canvas.instance.clear();
@@ -408,13 +414,13 @@ public class Command {
 
 		if (!citiesByName.containsKey(name)) {
 			addErrorNode("nameNotInDictionary", commandNode, parametersNode);
-		} else if (prQuadtree.contains(name)) {
+		} else if (pmQuadtree.contains(name)) {
 			addErrorNode("cityAlreadyMapped", commandNode, parametersNode);
 		} else {
 			City city = citiesByName.get(name);
 			try {
 				/* insert city into PR Quadtree */
-				prQuadtree.add(city);
+				pmQuadtree.add(city);
 
 				/* add city to canvas */
 				Canvas.instance.addPoint(city.getName(), city.getX(), city.getY(),
@@ -430,13 +436,14 @@ public class Command {
 		}
 	}
 
+	//This one isn't being worked until part 3
 	/**
 	 * Removes a city from the spatial map.
 	 * 
 	 * @param node
 	 *            unmapCity command node to be processed
 	 */
-	public void processUnmapCity(Element node) {
+	/*public void processUnmapCity(Element node) {
 		final Element commandNode = getCommandNode(node);
 		final Element parametersNode = results.createElement("parameters");
 
@@ -446,22 +453,22 @@ public class Command {
 
 		if (!citiesByName.containsKey(name)) {
 			addErrorNode("nameNotInDictionary", commandNode, parametersNode);
-		} else if (!prQuadtree.contains(name)) {
+		} else if (!pmQuadtree.contains(name)) {
 			addErrorNode("cityNotMapped", commandNode, parametersNode);
 		} else {
 			City city = citiesByName.get(name);
 
-			/* unmap the city in the PR Quadtree */
-			prQuadtree.remove(city);
+			/* unmap the city in the PR Quadtree * /
+			pmQuadtree.remove(city);
 
-			/* remove city from canvas */
+			/* remove city from canvas * /
 			Canvas.instance.removePoint(city.getName(), city.getX(), city.getY(),
 					Color.BLACK);
 
-			/* add success node to results */
+			/* add success node to results * /
 			addSuccessNode(commandNode, parametersNode, outputNode);
 		}
-	}
+	}*/
 
 	/**
 	 * Processes a saveMap command. Saves the graphical map to a given file.
@@ -497,13 +504,13 @@ public class Command {
 		final Element parametersNode = results.createElement("parameters");
 		final Element outputNode = results.createElement("output");
 
-		if (prQuadtree.isEmpty()) {
+		if (pmQuadtree.isEmpty()) {
 			/* empty PR Quadtree */
 			addErrorNode("mapIsEmpty", commandNode, parametersNode);
 		} else {
 			/* print PR Quadtree */
 			final Element quadtreeNode = results.createElement("quadtree");
-			printPRQuadtreeHelper(prQuadtree.getRoot(), quadtreeNode);
+			printPRQuadtreeHelper(pmQuadtree.getRoot(), quadtreeNode);
 
 			outputNode.appendChild(quadtreeNode);
 
@@ -522,13 +529,13 @@ public class Command {
 	 */
 	private void printPRQuadtreeHelper(final Node currentNode,
 			final Element xmlNode) {
-		if (currentNode.getType() == Node.EMPTY) {
+		if (currentNode.getType() == Node.WHITE) {
 			Element white = results.createElement("white");
 			xmlNode.appendChild(white);
 		} else {
-			if (currentNode.getType() == Node.LEAF) {
+			if (currentNode.getType() == Node.BLACK) {
 				/* leaf node */
-				final LeafNode currentLeaf = (LeafNode) currentNode;
+				final Black currentLeaf = (Black) currentNode;
 				final Element black = results.createElement("black");
 				black.setAttribute("name", currentLeaf.getCity().getName());
 				black.setAttribute("x", Integer.toString((int) currentLeaf
@@ -538,7 +545,7 @@ public class Command {
 				xmlNode.appendChild(black);
 			} else {
 				/* internal node */
-				final InternalNode currentInternal = (InternalNode) currentNode;
+				final Gray currentInternal = (Gray) currentNode;
 				final Element gray = results.createElement("gray");
 				gray.setAttribute("x", Integer.toString((int) currentInternal
 						.getCenterX()));
@@ -579,7 +586,7 @@ public class Command {
 		}
 		/* get cities within range */
 		final Point2D.Double point = new Point2D.Double(x, y);
-		rangeCitiesHelper(point, radius, prQuadtree.getRoot(), citiesInRange);
+		rangeCitiesHelper(point, radius, pmQuadtree.getRoot(), citiesInRange);
 
 		/* print out cities within range */
 		if (citiesInRange.isEmpty()) {
@@ -623,21 +630,21 @@ public class Command {
 	 */
 	private void rangeCitiesHelper(final Point2D.Double point,
 			final int radius, final Node node, final TreeSet<City> citiesInRange) {
-		if (node.getType() == Node.LEAF) {
-			final LeafNode leaf = (LeafNode) node;
+		if (node.getType() == Node.BLACK) {
+			final Black leaf = (Black) node;
 			final double distance = point.distance(leaf.getCity().toPoint2D());
 			if (distance <= radius) {
 				/* city is in range */
 				final City city = leaf.getCity();
 				citiesInRange.add(city);
 			}
-		} else if (node.getType() == Node.INTERNAL) {
+		} else if (node.getType() == Node.GRAY) {
 			/* check each quadrant of internal node */
-			final InternalNode internal = (InternalNode) node;
+			final Gray internal = (Gray) node;
 
 			final Circle2D.Double circle = new Circle2D.Double(point, radius);
 			for (int i = 0; i < 4; i++) {
-				if (prQuadtree.intersects(circle, internal.getChildRegion(i))) {
+				if (pmQuadtree.intersects(circle, internal.getChildRegion(i))) {
 					rangeCitiesHelper(point, radius, internal.getChild(i),
 							citiesInRange);
 				}
@@ -670,7 +677,7 @@ public class Command {
 		//final PriorityQueue<NearestCity> nearCities = new PriorityQueue<NearestCity>(
 		//		citiesByName.size());
 
-		if (prQuadtree.getRoot().getType() == Node.EMPTY) {
+		if (pmQuadtree.getRoot().getType() == Node.WHITE) {
 			addErrorNode("mapIsEmpty", commandNode, parametersNode);
 		} else {
 
@@ -680,7 +687,7 @@ public class Command {
 
 			//nearestCityHelper(prQuadtree.getRoot(), point, nearCities);
 			//NearestCity nearestCity = nearCities.remove();
-			City n = nearestCityHelper2(prQuadtree.getRoot(), point);
+			City n = nearestCityHelper2(pmQuadtree.getRoot(), point);
 			//addCityNode(outputNode, nearestCity.getCity());
 			addCityNode(outputNode, n);
 
@@ -697,18 +704,18 @@ public class Command {
 	private City nearestCityHelper2(Node root, Point2D.Float point) {
 		PriorityQueue<QuadrantDistance> q = new PriorityQueue<QuadrantDistance>();
 		Node currNode = root;
-		while (currNode.getType() != Node.LEAF) {
-			InternalNode g = (InternalNode) currNode;
+		while (currNode.getType() != Node.BLACK) {
+			Gray g = (Gray) currNode;
 			for (int i = 0; i < 4; i++) {
 				Node kid = g.children[i];
-				if (kid.getType() != Node.EMPTY) {
+				if (kid.getType() != Node.WHITE) {
 					q.add(new QuadrantDistance(kid, point));
 				}
 			}
 			currNode = q.remove().quadtreeNode;
 		}
 		
-		return ((LeafNode) currNode).getCity();
+		return ((Black) currNode).getCity();
 	}
 	
 	class QuadrantDistance implements Comparable<QuadrantDistance> {
@@ -717,12 +724,12 @@ public class Command {
 		
 		public QuadrantDistance(Node node, Point2D.Float pt) {
 			quadtreeNode = node;
-			if (node.getType() == Node.INTERNAL) {
-				InternalNode gray = (InternalNode) node;
+			if (node.getType() == Node.GRAY) {
+				Gray gray = (Gray) node;
 				distance = Shape2DDistanceCalculator.distance(pt, 
 						new Rectangle2D.Float(gray.origin.x, gray.origin.y, gray.width, gray.height));
-			} else if (node.getType() == Node.LEAF) {
-				LeafNode leaf = (LeafNode) node;
+			} else if (node.getType() == Node.BLACK) {
+				Black leaf = (Black) node;
 				distance = pt.distance(leaf.getCity().pt);
 			} else {
 				throw new IllegalArgumentException("Only leaf or internal node can be passed in");
@@ -736,15 +743,15 @@ public class Command {
 				return 1;
 			} else {
 				if (quadtreeNode.getType() != qd.quadtreeNode.getType()) {
-					if (quadtreeNode.getType() == Node.INTERNAL) {
+					if (quadtreeNode.getType() == Node.GRAY) {
 						return -1;
 					} else {
 						return 1;
 					}
-				} else if (quadtreeNode.getType() == Node.LEAF) {
+				} else if (quadtreeNode.getType() == Node.BLACK) {
 					// both are leaves
-					return ((LeafNode) qd.quadtreeNode).getCity().getName().compareTo(
-							((LeafNode) quadtreeNode).getCity().getName());
+					return ((Black) qd.quadtreeNode).getCity().getName().compareTo(
+							((Black) quadtreeNode).getCity().getName());
 				} else {
 					// both are internals
 					return 0;
