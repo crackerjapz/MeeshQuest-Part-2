@@ -17,8 +17,8 @@ public class Lib {
 	 *         otherwise
 	 */
 	public static boolean intersects(Point2D point, Rectangle2D rect) {
-		return (point.getX() >= rect.getMinX() && point.getX() < rect.getMaxX()
-				&& point.getY() >= rect.getMinY() && point.getY() < rect
+		return (point.getX() >= rect.getMinX() && point.getX() <= rect.getMaxX()
+				&& point.getY() >= rect.getMinY() && point.getY() <= rect
 				.getMaxY());
 	}
 }

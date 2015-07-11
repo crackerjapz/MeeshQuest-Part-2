@@ -1,17 +1,13 @@
 package cmsc420.structure.pmquadtree;
 
 import java.awt.Color;
+import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D.Float;
 import java.util.HashSet;
-
 import cmsc420.geom.Circle2D;
 import cmsc420.structure.City;
-import cmsc420.structure.prquadtree.EmptyNode;
-import cmsc420.structure.prquadtree.InternalNode;
-import cmsc420.structure.prquadtree.LeafNode;
-import cmsc420.structure.prquadtree.Node;
 import cmsc420.utils.Canvas;
 import cmsc420.utils.Lib;
 
@@ -21,9 +17,9 @@ import cmsc420.utils.Lib;
  * the canonical with modifications to make it relevant. 
  */
 public class PM3QuadTree {
-	
+
 	White SingletonWhiteNode = new White();
-	
+
 	/** root of the PM Quadtree */
 	protected Node root;
 
@@ -38,11 +34,11 @@ public class PM3QuadTree {
 
 	/** used to keep track of cities within the spatial map */
 	protected HashSet<String> cityNames;
-	
+
 	/**used to keep track of isolated cities within the map */
 	protected HashSet<String> isoCityNames;
 
-	PM3QuadTree(){
+	public PM3QuadTree(){
 		root = SingletonWhiteNode;
 		spatialOrigin = new Point2D.Float(0, 0);
 		cityNames = new HashSet<String>();
@@ -53,28 +49,28 @@ public class PM3QuadTree {
 		this.spatialWidth = spatialWidth;
 		this.spatialHeight = spatialHeight;
 	}
-	
+
 	//clears Structure
 	public void clear() {
 		root = SingletonWhiteNode;
 		cityNames.clear();
 		isoCityNames.clear();
 	}
-	
+
 	/**
 	 * Returns if the PM Quadtree contains a city with the given name.
 	 * 
 	 * @return true if the city is in the spatial map. false otherwise.
 	 */
 	public boolean contains(String name) {
-		return cityNames.contains(name);
+		return cityNames.contains(name) || isoCityNames.contains(name);
 	}
-	
+
 	//checks for empty structure
 	public boolean isEmpty() {
 		return (root == SingletonWhiteNode);
 	}
-	
+
 	/**
 	 * Gets the root node of the PM Quadtree.
 	 * 
@@ -84,6 +80,7 @@ public class PM3QuadTree {
 		return root;
 	}
 
+	
 
 	/**
 	 * Returns if any part of a circle lies within a given rectangular bounds
@@ -154,7 +151,7 @@ public class PM3QuadTree {
 
 		/** type of PM Quadtree node (either empty, leaf, or internal) */
 		protected final int type;
-		
+
 		/**
 		 * Constructor for abstract Node class.
 		 * 
@@ -164,7 +161,7 @@ public class PM3QuadTree {
 		protected Node(final int type) {
 			this.type = type;
 		}
-		
+
 		/**
 		 * Gets the type of the node (either empty, leaf, or internal).
 		 * 
@@ -173,7 +170,7 @@ public class PM3QuadTree {
 		public int getType() {
 			return type;
 		}
-		
+
 		/**
 		 * Adds a city to the node. If an empty node, the node becomes a leaf
 		 * node. If a leaf node already, the leaf node becomes an internal node
@@ -193,23 +190,26 @@ public class PM3QuadTree {
 		public abstract Node add(City city, Point2D.Float origin, int width,
 				int height);
 
+		public abstract Node addRoad(QEdge road);
+
+
 	}
-	
+
 	public class Black extends Node {
-		QEdge[] roads;
+		HashSet <QEdge> roads;
 		City city = null;
-		
+
 		public Black(){
 			super(Node.BLACK);
 		}
 
 		public boolean hasCity(){
-		//	if (city == null) return false;
+			//	if (city == null) return false;
 			//return true;
-			
+
 			return (city == null) ? false : true;
 		}
-		
+
 		/**
 		 * Gets the city contained by this node.
 		 * 
@@ -221,7 +221,7 @@ public class PM3QuadTree {
 
 		@Override
 		public Node add(City newCity, Float origin, int width, int height) {
-			if (city == null) {
+			if (city == null || city.equals(newCity)) {
 				/* node is empty, add city */
 				city = newCity;
 				return this;
@@ -231,14 +231,26 @@ public class PM3QuadTree {
 						height);
 				internalNode.add(city, origin, width, height);
 				internalNode.add(newCity, origin, width, height);
+				for (QEdge road : roads){
+					internalNode.addRoad(road);
+				}
 				return internalNode;
 			}
 		}
-		
+
+		@Override
+		public Node addRoad(QEdge road) {
+			if (roads.contains(road)){
+				return this;
+			}
+			roads.add(road);
+			return this;
+		}
+
 	}
 
 	public class Gray extends Node{
-		
+
 		/** children nodes of this node */
 		public Node[] children;
 
@@ -265,8 +277,8 @@ public class PM3QuadTree {
 		public Gray(){
 			super(Node.GRAY);
 		}
-		
-		
+
+
 		public Gray(Float origin, int width, int height) {
 			super(Node.GRAY);
 
@@ -300,11 +312,11 @@ public class PM3QuadTree {
 
 			/* add a cross to the drawing panel */
 			if (Canvas.instance != null) {
-	            //canvas.addCross(getCenterX(), getCenterY(), halfWidth, Color.d);
+				//canvas.addCross(getCenterX(), getCenterY(), halfWidth, Color.d);
 				int cx = getCenterX();
 				int cy = getCenterY();
-	            Canvas.instance.addLine(cx - halfWidth, cy, cx + halfWidth, cy, Color.GRAY);
-	            Canvas.instance.addLine(cx, cy - halfHeight, cx, cy + halfHeight, Color.GRAY);
+				Canvas.instance.addLine(cx - halfWidth, cy, cx + halfWidth, cy, Color.GRAY);
+				Canvas.instance.addLine(cx, cy - halfHeight, cx, cy + halfHeight, Color.GRAY);
 			}
 		}
 
@@ -350,7 +362,7 @@ public class PM3QuadTree {
 		public int getCenterX() {
 			return (int) origin.x + halfWidth;
 		}
-		
+
 		/**
 		 * Gets the center Y coordinate of this node's rectangular bounds.
 		 * 
@@ -366,16 +378,27 @@ public class PM3QuadTree {
 				if (Lib.intersects(cityLocation, regions[i])) {
 					children[i] = children[i].add(city, origins[i], halfWidth,
 							halfHeight);
-					break;
 				}
 			}
 			return this;
 		}
-		
+
+
+		@Override
+		public Node addRoad(QEdge road) {
+			final Line2D.Float line = road;
+			for (int i = 0; i < 4; i++) {
+				if (line.intersects(regions[i])) {
+					children[i] = children[i].addRoad(road);
+				}
+			}
+			return this;
+		}
+
 	}
-	
+
 	public class White extends Node{
-		
+
 		/**
 		 * Constructs and initializes an empty node.
 		 */
@@ -388,10 +411,34 @@ public class PM3QuadTree {
 			return blackNode.add(city, origin, width, height);
 		}
 
+		public Node addRoad(QEdge road) {
+			Node blackNode = new Black();
+			return blackNode.addRoad(road);
+		}
 		public Node remove(City city, Point2D.Float origin, int width,
 				int height) {
 			/* should never get here, nothing to remove */
 			throw new IllegalArgumentException();
 		}
+	}
+
+	//by compartmentalizing the city list to add the names in these functions, a single
+	//add function can operate for both types of cities easily.
+	public void add(City city) {
+		// TODO Auto-generated method stub
+		//adds to cityNames here, not in add
+		
+	}
+	
+	public void isoAdd(City city) {
+		// TODO Auto-generated method stub
+		//adds to isoCityNames here
+		
+	}
+	
+	public void addRoad(QEdge road, City start, City end) {
+		// TODO Auto-generated method stub
+		//must take care of adding cities for the roads here:
+		
 	}
 }
