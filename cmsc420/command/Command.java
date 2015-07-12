@@ -59,7 +59,7 @@ public class Command {
 		public int compare(String o1, String o2) {
 			return o2.compareTo(o1);
 		}
-		
+
 	});
 
 	/**
@@ -70,7 +70,7 @@ public class Command {
 
 	/** stores mapped cities in a spatial data structure */
 	//protected final PRQuadtree prQuadtree = new PRQuadtree();
-	
+
 	protected final PM3QuadTree pmQuadtree = new PM3QuadTree();
 
 	/** spatial width and height of the PR Quadtree */
@@ -262,7 +262,7 @@ public class Command {
 			addSuccessNode(commandNode, parametersNode, outputNode);
 		}
 	}
-//This one isn't being processed until Part 3
+	//This one isn't being processed until Part 3
 	/**
 	 * Processes a deleteCity command. Deletes a city from the dictionary. An
 	 * error occurs if the city does not exist or is currently mapped.
@@ -668,9 +668,9 @@ public class Command {
 		final int y = processIntegerAttribute(node, "y", parametersNode);
 
 		final Point2D.Float point = new Point2D.Float(x, y);
-		
+
 		if (citiesByName.size() <= 0) {
-			addErrorNode("mapIsEmpty", commandNode, parametersNode);
+			addErrorNode("cityNotFound", commandNode, parametersNode);
 			return;
 		}
 
@@ -678,7 +678,7 @@ public class Command {
 		//		citiesByName.size());
 
 		if (pmQuadtree.getRoot().getType() == Node.WHITE) {
-			addErrorNode("mapIsEmpty", commandNode, parametersNode);
+			addErrorNode("cityNotFound", commandNode, parametersNode);
 		} else {
 
 			//
@@ -695,7 +695,49 @@ public class Command {
 			addSuccessNode(commandNode, parametersNode, outputNode);
 		}
 	}
+	/**
+	 * Finds the nearest city to a given point.
+	 * 
+	 * @param node
+	 *            nearestCity command being processed
+	 */
+	public void processNearestIsoCity(Element node) {
+		final Element commandNode = getCommandNode(node);
+		final Element parametersNode = results.createElement("parameters");
+		final Element outputNode = results.createElement("output");
 
+		/* extract attribute values from command */
+		final int x = processIntegerAttribute(node, "x", parametersNode);
+		final int y = processIntegerAttribute(node, "y", parametersNode);
+
+		final Point2D.Float point = new Point2D.Float(x, y);
+
+		if (citiesByName.size() <= 0) {
+			addErrorNode("cityNotFound", commandNode, parametersNode);
+			return;
+		}
+
+		//final PriorityQueue<NearestCity> nearCities = new PriorityQueue<NearestCity>(
+		//		citiesByName.size());
+
+		if (pmQuadtree.getRoot().getType() == Node.WHITE) {
+			addErrorNode("cityNotFound", commandNode, parametersNode);
+		} else {
+
+			//
+			//nearCities.add(new NearestCity(null, Double.POSITIVE_INFINITY));
+			//
+
+			//nearestCityHelper(prQuadtree.getRoot(), point, nearCities);
+			//NearestCity nearestCity = nearCities.remove();
+			City n = nearestCityHelper3(pmQuadtree.getRoot(), point);
+			//addCityNode(outputNode, nearestCity.getCity());
+			addCityNode(outputNode, n);
+
+			/* add success node to results */
+			addSuccessNode(commandNode, parametersNode, outputNode);
+		}
+	}
 	/**
 	 * 2/25/2011
 	 * @param root
@@ -708,20 +750,43 @@ public class Command {
 			Gray g = (Gray) currNode;
 			for (int i = 0; i < 4; i++) {
 				Node kid = g.children[i];
-				if (kid.getType() != Node.WHITE) {
-					q.add(new QuadrantDistance(kid, point));
+				QuadrantDistance test = new QuadrantDistance(kid, point);
+				if (kid.getType() != Node.WHITE && !q.contains(test)) {
+					q.add(test);
 				}
 			}
 			currNode = q.remove().quadtreeNode;
 		}
-		
+
 		return ((Black) currNode).getCity();
 	}
-	
+	/*
+	 * sorts for isolated cities
+	 */
+	private City nearestCityHelper3(Node root, Point2D.Float point) {
+		PriorityQueue<QuadrantDistance> q = new PriorityQueue<QuadrantDistance>();
+		Node currNode = root;
+		while (currNode.getType() != Node.BLACK) {
+			Gray g = (Gray) currNode;
+			for (int i = 0; i < 4; i++) {
+				Node kid = g.children[i];
+				QuadrantDistance test = new QuadrantDistance(kid, point);
+				if (!q.contains(test) &&
+						(kid.getType() == Node.GRAY || 
+						(kid.getType() == Node.BLACK && pmQuadtree.isInIso(((Black) kid).getCity())))) {
+					q.add(test);
+				}
+			}
+			currNode = q.remove().quadtreeNode;
+		}
+
+		return ((Black) currNode).getCity();
+	}
+
 	class QuadrantDistance implements Comparable<QuadrantDistance> {
 		public Node quadtreeNode;
 		private double distance;
-		
+
 		public QuadrantDistance(Node node, Point2D.Float pt) {
 			quadtreeNode = node;
 			if (node.getType() == Node.GRAY) {
@@ -735,7 +800,7 @@ public class Command {
 				throw new IllegalArgumentException("Only leaf or internal node can be passed in");
 			}
 		}
-		
+
 		public int compareTo(QuadrantDistance qd) {
 			if (distance < qd.distance) {
 				return -1;
@@ -760,141 +825,141 @@ public class Command {
 		}
 	}
 
-//	/**
-//	 * Examines the distance from each city in a PR Quadtree node from the given
-//	 * point.
-//	 * 
-//	 * @param node
-//	 *            PR Quadtree node being examined
-//	 * @param point
-//	 *            point
-//	 * @param nearCities
-//	 *            priority queue of cities organized by how close they are to
-//	 *            the point
-//	 */
-//	private void nearestCityHelper(Node node, Point2D.Float point,
-//			PriorityQueue<NearestCity> nearCities) {
-//		if (node.getType() == Node.LEAF) {
-//			LeafNode leaf = (LeafNode) node;
-//			NearestCity nearCity = new NearestCity(leaf.getCity(), point
-//					.distance(leaf.getCity().toPoint2D()));
-//			if (nearCity.compareTo(nearCities.peek()) < 0) {
-//				nearCities.add(nearCity);
-//			}
-//		} else if (node.getType() == Node.INTERNAL) {
-//			InternalNode internal = (InternalNode) node;
-//			TreeSet<NearestQuadrant> nearestQuadrants = new TreeSet<NearestQuadrant>();
-//			for (int i = 0; i < 4; i++) {
-//				nearestQuadrants.add(new NearestQuadrant(Shape2DDistanceCalculator.distance(point, internal
-//						.getChildRegion(i)), i));
-//			}
-//			
-//			for (NearestQuadrant nearQuadrant : nearestQuadrants) {
-//				final int i = nearQuadrant.getQuadrant(); 
-//				
-//				if (Shape2DDistanceCalculator.distance(point, internal
-//						.getChildRegion(i)) <= nearCities.peek().getDistance()) {
-//
-//					nearestCityHelper(internal.getChild(i), point, nearCities);
-//				}
-//			}
-//		}
-//	}
-//	
-//	private class NearestQuadrant implements Comparable<NearestQuadrant> {
-//
-//		private double distance;
-//		
-//		private int quadrant;
-//		
-//		public NearestQuadrant(double distance, int quadrant) {
-//			this.distance = distance;
-//			this.quadrant = quadrant;
-//		}
-//
-//		public int getQuadrant() {
-//			return quadrant;
-//		}
-//
-//		public int compareTo(NearestQuadrant o) {
-//			if (distance < o.distance) {
-//				return -1;
-//			} else if (distance > o.distance) {
-//				return 1;
-//			} else {
-//				if (quadrant < o.quadrant) {
-//					return -1;
-//				} else if (quadrant > o.quadrant) {
-//					return 1;
-//				} else {
-//					return 0;
-//				}
-//			}
-//		}
-//		
-//	}
-//
-//	/**
-//	 * Used with the nearestCity command. Each NearestCity contains a city and
-//	 * the city's distance from a give point. A NearestCity is less than another
-//	 * if it's distance is smaller than the other's.
-//	 * 
-//	 * @author Ben Zoller
-//	 * @version 1.0
-//	 */
-//	private class NearestCity implements Comparable<NearestCity> {
-//		/** city */
-//		private final City city;
-//
-//		/** city's distance to a point */
-//		private final double distance;
-//
-//		/**
-//		 * Constructs a city and it's distance from a point.
-//		 * 
-//		 * @param city
-//		 *            city
-//		 * @param distance
-//		 *            distance from a point
-//		 */
-//		private NearestCity(final City city, final double distance) {
-//			this.city = city;
-//			this.distance = distance;
-//		}
-//
-//		/**
-//		 * Gets the city
-//		 * 
-//		 * @return city
-//		 */
-//		private City getCity() {
-//			return city;
-//		}
-//
-//		/**
-//		 * Compares one city to another based on their distances.
-//		 * 
-//		 * @param otherNearCity
-//		 *            other city
-//		 * @return distance comparison results
-//		 */
-//		public int compareTo(final NearestCity otherNearCity) {
-//			if (distance < otherNearCity.distance) {
-//				return -1;
-//			} else if (distance > otherNearCity.distance) {
-//				return 1;
-//			} else {
-//				return city.getName().compareTo(otherNearCity.city.getName());
-//			}
-//		}
-//
-//		/**
-//		 * Gets the distance
-//		 * 
-//		 * @return distance
-//		 */
-//		public double getDistance() {
-//			return distance;
-//		}
-//	}
+	//	/**
+	//	 * Examines the distance from each city in a PR Quadtree node from the given
+	//	 * point.
+	//	 * 
+	//	 * @param node
+	//	 *            PR Quadtree node being examined
+	//	 * @param point
+	//	 *            point
+	//	 * @param nearCities
+	//	 *            priority queue of cities organized by how close they are to
+	//	 *            the point
+	//	 */
+	//	private void nearestCityHelper(Node node, Point2D.Float point,
+	//			PriorityQueue<NearestCity> nearCities) {
+	//		if (node.getType() == Node.LEAF) {
+	//			LeafNode leaf = (LeafNode) node;
+	//			NearestCity nearCity = new NearestCity(leaf.getCity(), point
+	//					.distance(leaf.getCity().toPoint2D()));
+	//			if (nearCity.compareTo(nearCities.peek()) < 0) {
+	//				nearCities.add(nearCity);
+	//			}
+	//		} else if (node.getType() == Node.INTERNAL) {
+	//			InternalNode internal = (InternalNode) node;
+	//			TreeSet<NearestQuadrant> nearestQuadrants = new TreeSet<NearestQuadrant>();
+	//			for (int i = 0; i < 4; i++) {
+	//				nearestQuadrants.add(new NearestQuadrant(Shape2DDistanceCalculator.distance(point, internal
+	//						.getChildRegion(i)), i));
+	//			}
+	//			
+	//			for (NearestQuadrant nearQuadrant : nearestQuadrants) {
+	//				final int i = nearQuadrant.getQuadrant(); 
+	//				
+	//				if (Shape2DDistanceCalculator.distance(point, internal
+	//						.getChildRegion(i)) <= nearCities.peek().getDistance()) {
+	//
+	//					nearestCityHelper(internal.getChild(i), point, nearCities);
+	//				}
+	//			}
+	//		}
+	//	}
+	//	
+	//	private class NearestQuadrant implements Comparable<NearestQuadrant> {
+	//
+	//		private double distance;
+	//		
+	//		private int quadrant;
+	//		
+	//		public NearestQuadrant(double distance, int quadrant) {
+	//			this.distance = distance;
+	//			this.quadrant = quadrant;
+	//		}
+	//
+	//		public int getQuadrant() {
+	//			return quadrant;
+	//		}
+	//
+	//		public int compareTo(NearestQuadrant o) {
+	//			if (distance < o.distance) {
+	//				return -1;
+	//			} else if (distance > o.distance) {
+	//				return 1;
+	//			} else {
+	//				if (quadrant < o.quadrant) {
+	//					return -1;
+	//				} else if (quadrant > o.quadrant) {
+	//					return 1;
+	//				} else {
+	//					return 0;
+	//				}
+	//			}
+	//		}
+	//		
+	//	}
+	//
+	//	/**
+	//	 * Used with the nearestCity command. Each NearestCity contains a city and
+	//	 * the city's distance from a give point. A NearestCity is less than another
+	//	 * if it's distance is smaller than the other's.
+	//	 * 
+	//	 * @author Ben Zoller
+	//	 * @version 1.0
+	//	 */
+	//	private class NearestCity implements Comparable<NearestCity> {
+	//		/** city */
+	//		private final City city;
+	//
+	//		/** city's distance to a point */
+	//		private final double distance;
+	//
+	//		/**
+	//		 * Constructs a city and it's distance from a point.
+	//		 * 
+	//		 * @param city
+	//		 *            city
+	//		 * @param distance
+	//		 *            distance from a point
+	//		 */
+	//		private NearestCity(final City city, final double distance) {
+	//			this.city = city;
+	//			this.distance = distance;
+	//		}
+	//
+	//		/**
+	//		 * Gets the city
+	//		 * 
+	//		 * @return city
+	//		 */
+	//		private City getCity() {
+	//			return city;
+	//		}
+	//
+	//		/**
+	//		 * Compares one city to another based on their distances.
+	//		 * 
+	//		 * @param otherNearCity
+	//		 *            other city
+	//		 * @return distance comparison results
+	//		 */
+	//		public int compareTo(final NearestCity otherNearCity) {
+	//			if (distance < otherNearCity.distance) {
+	//				return -1;
+	//			} else if (distance > otherNearCity.distance) {
+	//				return 1;
+	//			} else {
+	//				return city.getName().compareTo(otherNearCity.city.getName());
+	//			}
+	//		}
+	//
+	//		/**
+	//		 * Gets the distance
+	//		 * 
+	//		 * @return distance
+	//		 */
+	//		public double getDistance() {
+	//			return distance;
+	//		}
+	//	}
 }

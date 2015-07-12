@@ -196,6 +196,8 @@ public class MeeshQuest {
 			command.processRangeCities(commandNode);
 		} else if (name.equals("nearestCity")) {
 			command.processNearestCity(commandNode);
+		} else if (name.equals("nearestIsolatedCity")) {
+			command.processNearestIsoCity(commandNode);
 		} else {
 			if (LOCAL_TEST) System.out.println("Problem with the validator");
 			System.exit(-1);

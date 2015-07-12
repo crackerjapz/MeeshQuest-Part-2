@@ -163,7 +163,7 @@ implements SortedMap<K, V> {
 	}
 
 	final Entry<K,V> getLastEntry() {
-	
+
 		Entry<K,V> p = root;
 		if (p != null)
 			while (p.right != null)
@@ -172,7 +172,7 @@ implements SortedMap<K, V> {
 	}
 
 	final Entry<K,V> getFirstEntry() {
-	
+
 		Entry<K,V> p = root;
 		if (p != null)
 			while (p.left != null)
@@ -187,304 +187,445 @@ implements SortedMap<K, V> {
 	}
 
 	//checks the size, returns true if size = 0
-			@Override
-			public boolean isEmpty() {
+	@Override
+	public boolean isEmpty() {
 		if (size == 0) return true;
 		return false;
-			}
+	}
 
-			@Override
-			public V put(K key, V value) {
-				// TODO Auto-generated method stub
-				Entry<K,V> t = root;
-				if (t == null) {
-					// TBD:
-					// 5045147: (coll) Adding null to an empty TreeSet should
-					// throw NullPointerException
-					//
-					// compare(key, key); // type check
-					root = new Entry<K,V>(key, value, null);
-					size = 1;
-					modCount++;
-					return null;
-				}
-				int cmp;
-				Entry<K,V> parent;
-				// split comparator and comparable paths
-				Comparator<? super K> cpr = comparator;
-				if (cpr != null) {
-					do {
-						parent = t;
-						cmp = cpr.compare(key, t.key);
-						if (cmp < 0)
-							t = t.left;
-						else if (cmp > 0)
-							t = t.right;
-						else
-							return t.setValue(value);
-					} while (t != null);
-				}
-				else {
-					if (key == null)
-						throw new NullPointerException();
-					Comparable<? super K> k = (Comparable<? super K>) key;
-					do {
-						parent = t;
-						cmp = k.compareTo(t.key);
-						if (cmp < 0)
-							t = t.left;
-						else if (cmp > 0)
-							t = t.right;
-						else
-							return t.setValue(value);
-					} while (t != null);
-				}
-				Entry<K,V> e = new Entry<K,V>(key, value, parent);
+	@Override
+	public V put(K key, V value) {
+		// TODO Auto-generated method stub
+		Entry<K,V> t = root;
+		if (t == null) {
+			// TBD:
+			// 5045147: (coll) Adding null to an empty TreeSet should
+			// throw NullPointerException
+			//
+			// compare(key, key); // type check
+			root = new Entry<K,V>(key, value, null);
+			size = 1;
+			modCount++;
+			return null;
+		}
+		int cmp;
+		Entry<K,V> parent;
+		// split comparator and comparable paths
+		Comparator<? super K> cpr = comparator;
+		if (cpr != null) {
+			do {
+				parent = t;
+				cmp = cpr.compare(key, t.key);
 				if (cmp < 0)
-					parent.left = e;
+					t = t.left;
+				else if (cmp > 0)
+					t = t.right;
 				else
-					parent.right = e;
-				fixAfterInsertion(e);
-				size++;
-				modCount++;
-				return null;
+					return t.setValue(value);
+			} while (t != null);
+		}
+		else {
+			if (key == null)
+				throw new NullPointerException();
+			Comparable<? super K> k = (Comparable<? super K>) key;
+			do {
+				parent = t;
+				cmp = k.compareTo(t.key);
+				if (cmp < 0)
+					t = t.left;
+				else if (cmp > 0)
+					t = t.right;
+				else
+					return t.setValue(value);
+			} while (t != null);
+		}
+		Entry<K,V> e = new Entry<K,V>(key, value, parent);
+		if (cmp < 0)
+			parent.left = e;
+		else
+			parent.right = e;
+		//fixAfterInsertion(e);
+		size++;
+		modCount++;
+		return null;
 
-			}
+	}
 
 
-			public void putAll(Map<? extends K, ? extends V> map) {
-				super.putAll(map);
+	public void putAll(Map<? extends K, ? extends V> map) {
+		super.putAll(map);
 
-			}
+	}
 
-			//not implemented in part 2
-			@Override
-			public V remove(Object arg0) {
+	//not implemented in part 2
+	@Override
+	public V remove(Object arg0) {
 
-				return null;
-			}
+		return null;
+	}
 
-			// returns the size of the Tree
-			@Override
-			public int size() {
+	// returns the size of the Tree
+	@Override
+	public int size() {
 
-				return size;
-			}
+		return size;
+	}
 
-			//returns the comparator this Map uses
-			@Override
-			public Comparator<? super K> comparator() {
+	//returns the comparator this Map uses
+	@Override
+	public Comparator<? super K> comparator() {
 
-				return comparator;
-			}
+		return comparator;
+	}
+	final int compare(Object k1, Object k2) {
+		return comparator==null ? ((Comparable<? super K>)k1).compareTo((K)k2)
+				: comparator.compare((K)k1, (K)k2);
+	}
+	@Override
+	public Set<Map.Entry<K, V>> entrySet() {
+		EntrySet es = entrySet;
+		return (es != null) ? es : (entrySet = new EntrySet());
+		//return null;
+	}
 
-			@Override
-			public Set<Map.Entry<K, V>> entrySet() {
-				EntrySet es = entrySet;
-				return (es != null) ? es : (entrySet = new EntrySet());
-				//return null;
-			}
+	@Override
+	public K firstKey() {
+		return getFirstEntry().key;
+	}
 
-			@Override
-			public K firstKey() {
-				return getFirstEntry().key;
-			}
+	//not implemented in part 2
+	@Override
+	public SortedMap<K, V> headMap(K arg0) {
 
-			//not implemented in part 2
-			@Override
-			public SortedMap<K, V> headMap(K arg0) {
+		return null;
+	}
 
-				return null;
-			}
+	//not implemented in part 2
+	@Override
+	public Set<K> keySet() {
 
-			//not implemented in part 2
-			@Override
-			public Set<K> keySet() {
+		return null;
+	}
 
-				return null;
-			}
+	@Override
+	public K lastKey() {
+		return getLastEntry().key;
+	}
 
-			@Override
-			public K lastKey() {
-				return getLastEntry().key;
-			}
+	@Override
+	public SortedMap<K, V> subMap(K fromKey, K toKey) {
 
-			@Override
-			public SortedMap<K, V> subMap(K arg0, K arg1) {
-				// TODO Auto-generated method stub
-				return null;
-			}
+		return new SubMap<K,V>(fromKey, toKey, this);
+		
+	}
 
-			//not implemented in Part 2
-			@Override
-			public SortedMap<K, V> tailMap(K arg0) {
+	//not implemented in Part 2
+	@Override
+	public SortedMap<K, V> tailMap(K arg0) {
 
-				return null;
-			}
+		return null;
+	}
 
-			//not implemented in Part 2
-			@Override
-			public Collection<V> values() {
+	//not implemented in Part 2
+	@Override
+	public Collection<V> values() {
 
-				return null;
-			}
+		return null;
+	}
 
-			class Entry <K,V> implements Map.Entry<K, V> {
-			
-				int height;
-				Entry<K,V> left = null;
-				Entry<K,V> right = null;
-				Entry<K,V> parent;
-				K key;
-				V value;
-			
-			
-			
-				Entry(K key, V value){
-					this.key = key;
-					this.value = value;
-					height = 0;
-				}
-			
-				public Entry(K key2, V value2, Entry<K, V> parent2) {
-					this(key2, value2);
-					parent = parent2;
-				}
-			
-				@Override
-				public K getKey() {
-			
-					return key;
-				}
-			
-				@Override
-				public V getValue() {
-			
-					return value;
-				}
-			
-				@Override
-				public V setValue(V val) {
-			
-					V oldValue = this.value;
-					this.value = val;
-					return oldValue;
-				}
-			
-				//comparison
-				public boolean equals(Object o) {
-					if (!(o instanceof Map.Entry))
-						return false;
-					Map.Entry<?,?> e = (Map.Entry<?, ?>) o;
-			
-					return valEquals(key,e.getKey()) && valEquals(value, e.getValue());
-				}
-			
-				//returns hashcode for each entry at the entry level
-				public int hashCode() {
-			
-					int keyHash = (key==null ? 0 : key.hashCode());
-					int valueHash = (value==null ? 0 : value.hashCode());
-					return keyHash ^ valueHash;
-				}
-			
-				//toString for each entry
-				public String toString(){
-					return key + "=" + value;
-				}
-			
-			}
-			abstract class PrivateEntryIterator<T> implements Iterator<T> {
-				Entry<K,V> next;
-				Entry<K,V> lastReturned;
-				int expectedModCount;
-				PrivateEntryIterator(Entry<K,V> first) {
-					expectedModCount = modCount;
-					lastReturned = null;
-					next = first;
-				}
-			
-				public final boolean hasNext() {
-					return next != null;
-				}
-				final Entry<K,V> nextEntry() {
-					Entry<K,V> e = next;
-					if (e == null)
-						throw new NoSuchElementException();
-					if (modCount != expectedModCount)
-						throw new ConcurrentModificationException();
-					next = successor(e);
-					lastReturned = e;
-					return e;
-				}   final Entry<K,V> prevEntry() {
-					Entry<K,V> e = next;
-					if (e == null)
-						throw new NoSuchElementException();
-					if (modCount != expectedModCount)
-						throw new ConcurrentModificationException();
-					next = predecessor(e);
-					lastReturned = e;
-					return e;
-				}
-				public void  remove() {
-					if (lastReturned == null)
-						throw new IllegalStateException();
-					if (modCount != expectedModCount)
-						throw new ConcurrentModificationException();
-					// deleted entries are replaced by their successors
-					if (lastReturned.left != null && lastReturned.right != null)
-						next = lastReturned;
-					//deleteEntry(lastReturned);
-					expectedModCount = modCount;
-					lastReturned = null;
+	class SubMap<K,V> implements SortedMap<K,V>{
+
+		final K lo, hi;
+		AvlGTree<K,V> m;
+
+		public SubMap(K fromKey, K toKey, AvlGTree base) {
+			lo = fromKey;
+			hi = toKey;
+			m = base;
+		}
+
+		final boolean tooLow(Object key) {
+			int c = m.compare(key, lo);
+			return c <= 0;
+		}
+
+		final boolean  tooHigh(Object key) {
+
+			int c = m.compare(key, hi);
+			return c >= 0;
+		}
+
+		final boolean  inRange(Object key) {
+			return !tooLow(key) && !tooHigh(key);
+		}
+
+		@Override
+		public void clear() {
+			m.clear();
+		}
+
+		@Override
+		public boolean containsKey(Object arg0) {
+			return inRange(arg0) && m.containsKey(arg0);
+			//return false;
+		}
+
+		@Override
+		public boolean containsValue(Object arg0) {
+			return inRange(arg0) && m.containsValue(arg0);
+			//return false;
+		}
+
+		@Override
+		public V get(Object key) {
+			return !inRange(key)? null :  m.get(key);
+		}
+
+		@Override
+		public boolean isEmpty() {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public V put(K key, V value) {
+			if (!inRange(key))
+				throw new IllegalArgumentException("key out of range");
+			return m.put(key, value);
+		}
+
+		@Override
+		public void putAll(Map<? extends K, ? extends V> input) {
+			for (Map.Entry<? extends K, ? extends V> item : input.entrySet()){
+				if (inRange(item.getKey())){
+					m.put(item.getKey(), item.getValue());
 				}
 			}
-			final class  EntryIterator extends PrivateEntryIterator<Map.Entry<K,V>> {
-				EntryIterator(Entry<K,V> first) {
-					super(first);
-				}
-				public Map.Entry<K,V>  next() {
-					return nextEntry();
-				}
+		}
+
+		@Override
+		public V remove(Object arg0) {
+			// Not until Part 3
+			return null;
+		}
+
+		@Override
+		public int size() {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+
+		@Override
+		public Comparator<? super K> comparator() {
+			
+			return m.comparator;
+		}
+
+		@Override
+		public Set<java.util.Map.Entry<K, V>> entrySet() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public K firstKey() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public SortedMap<K, V> headMap(K arg0) {
+			// not in Part 2
+			return null;
+		}
+
+		@Override
+		public Set<K> keySet() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public K lastKey() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public SortedMap<K, V> subMap(K arg0, K arg1) {
+			
+			return new SubMap(arg0, arg1, m);
+		}
+
+		@Override
+		public SortedMap<K, V> tailMap(K arg0) {
+			// Not in Part 2
+			return null;
+		}
+
+		@Override
+		public Collection<V> values() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+	}
+	class Entry <K,V> implements Map.Entry<K, V> {
+
+		int height;
+		Entry<K,V> left = null;
+		Entry<K,V> right = null;
+		Entry<K,V> parent;
+		K key;
+		V value;
+
+
+
+		Entry(K key, V value){
+			this.key = key;
+			this.value = value;
+			height = 0;
+		}
+
+		public Entry(K key2, V value2, Entry<K, V> parent2) {
+			this(key2, value2);
+			parent = parent2;
+		}
+
+		@Override
+		public K getKey() {
+
+			return key;
+		}
+
+		@Override
+		public V getValue() {
+
+			return value;
+		}
+
+		@Override
+		public V setValue(V val) {
+
+			V oldValue = this.value;
+			this.value = val;
+			return oldValue;
+		}
+
+		//comparison
+		public boolean equals(Object o) {
+			if (!(o instanceof Map.Entry))
+				return false;
+			Map.Entry<?,?> e = (Map.Entry<?, ?>) o;
+
+			return valEquals(key,e.getKey()) && valEquals(value, e.getValue());
+		}
+
+		//returns hashcode for each entry at the entry level
+		public int hashCode() {
+
+			int keyHash = (key==null ? 0 : key.hashCode());
+			int valueHash = (value==null ? 0 : value.hashCode());
+			return keyHash ^ valueHash;
+		}
+
+		//toString for each entry
+		public String toString(){
+			return key + "=" + value;
+		}
+
+	}
+	abstract class PrivateEntryIterator<T> implements Iterator<T> {
+		Entry<K,V> next;
+		Entry<K,V> lastReturned;
+		int expectedModCount;
+		PrivateEntryIterator(Entry<K,V> first) {
+			expectedModCount = modCount;
+			lastReturned = null;
+			next = first;
+		}
+
+		public final boolean hasNext() {
+			return next != null;
+		}
+		final Entry<K,V> nextEntry() {
+			Entry<K,V> e = next;
+			if (e == null)
+				throw new NoSuchElementException();
+			if (modCount != expectedModCount)
+				throw new ConcurrentModificationException();
+			next = successor(e);
+			lastReturned = e;
+			return e;
+		}   final Entry<K,V> prevEntry() {
+			Entry<K,V> e = next;
+			if (e == null)
+				throw new NoSuchElementException();
+			if (modCount != expectedModCount)
+				throw new ConcurrentModificationException();
+			next = predecessor(e);
+			lastReturned = e;
+			return e;
+		}
+		public void  remove() {
+			if (lastReturned == null)
+				throw new IllegalStateException();
+			if (modCount != expectedModCount)
+				throw new ConcurrentModificationException();
+			// deleted entries are replaced by their successors
+			if (lastReturned.left != null && lastReturned.right != null)
+				next = lastReturned;
+			//deleteEntry(lastReturned);
+			expectedModCount = modCount;
+			lastReturned = null;
+		}
+	}
+	final class  EntryIterator extends PrivateEntryIterator<Map.Entry<K,V>> {
+		EntryIterator(Entry<K,V> first) {
+			super(first);
+		}
+		public Map.Entry<K,V>  next() {
+			return nextEntry();
+		}
+	}
+	class EntrySet extends AbstractSet<Map.Entry<K,V>> {
+
+		public Iterator<Map.Entry<K,V>>  iterator() {
+
+			return new EntryIterator(getFirstEntry());
+
+		}
+
+		public boolean  contains(Object o) {
+			if (!(o instanceof Map.Entry))
+				return false;
+			Map.Entry<K,V> entry = (Map.Entry<K,V>) o;
+			V value = entry.getValue();
+			Entry<K,V> p = getEntry(entry.getKey());
+			return p != null && valEquals(p.getValue(), value);
+		}
+
+		public boolean  remove(Object o) {
+			if (!(o instanceof Map.Entry))
+				return false;
+			Map.Entry<K,V> entry = (Map.Entry<K,V>) o;
+			V value = entry.getValue();
+			Entry<K,V> p = getEntry(entry.getKey());
+			if (p != null && valEquals(p.getValue(), value)) {
+				//deleteEntry(p);
+				return true;
 			}
-			class   EntrySet extends AbstractSet<Map.Entry<K,V>> {
+			return false;
+		}
+		public int  size() {
+			return AvlGTree.this.size();
 
-				public Iterator<Map.Entry<K,V>>  iterator() {
-
-					return new EntryIterator(getFirstEntry());
-
-				}
-
-				public boolean  contains(Object o) {
-					if (!(o instanceof Map.Entry))
-						return false;
-					Map.Entry<K,V> entry = (Map.Entry<K,V>) o;
-					V value = entry.getValue();
-					Entry<K,V> p = getEntry(entry.getKey());
-					return p != null && valEquals(p.getValue(), value);
-				}
-
-				public boolean  remove(Object o) {
-					if (!(o instanceof Map.Entry))
-						return false;
-					Map.Entry<K,V> entry = (Map.Entry<K,V>) o;
-					V value = entry.getValue();
-					Entry<K,V> p = getEntry(entry.getKey());
-					if (p != null && valEquals(p.getValue(), value)) {
-						//deleteEntry(p);
-						return true;
-					}
-					return false;
-				}
-				public int  size() {
-					return AvlGTree.this.size();
-
-				}
-				public void clear() {
-					AvlGTree.this.clear();
+		}
+		public void clear() {
+			AvlGTree.this.clear();
 
 
-				}
+		}
 
-			}
+	}
 }

@@ -6,6 +6,9 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D.Float;
 import java.util.HashSet;
+
+import cmsc420.exception.CityAlreadyMappedException;
+import cmsc420.exception.CityOutOfBoundsException;
 import cmsc420.geom.Circle2D;
 import cmsc420.structure.City;
 import cmsc420.utils.Canvas;
@@ -71,6 +74,10 @@ public class PM3QuadTree {
 		return (root == SingletonWhiteNode);
 	}
 
+	public boolean isInIso(City city) {
+		String name = city.getName();
+		return (isoCityNames.contains(name));
+	}
 	/**
 	 * Gets the root node of the PM Quadtree.
 	 * 
@@ -80,7 +87,7 @@ public class PM3QuadTree {
 		return root;
 	}
 
-	
+
 
 	/**
 	 * Returns if any part of a circle lies within a given rectangular bounds
@@ -424,21 +431,31 @@ public class PM3QuadTree {
 
 	//by compartmentalizing the city list to add the names in these functions, a single
 	//add function can operate for both types of cities easily.
-	public void add(City city) {
-		// TODO Auto-generated method stub
-		//adds to cityNames here, not in add
-		
+	public void add(City city) throws CityAlreadyMappedException,
+									CityOutOfBoundsException{
+		if (cityNames.contains(city.getName()) || isoCityNames.contains(city.getName())) {
+			/* city already mapped */
+			throw new CityAlreadyMappedException();
+		}
+
+		/* check bounds */
+		int x = (int) city.getX();
+		int y = (int) city.getY();
+		if (x < spatialOrigin.x || x >= spatialWidth || y < spatialOrigin.y
+				|| y >= spatialHeight) {
+			/* city out of bounds */
+			throw new CityOutOfBoundsException();
+		}
+
+		/* insert city into PRQuadTree */
+		isoCityNames.add(city.getName());
+		root = root.add(city, spatialOrigin, spatialWidth, spatialHeight);
 	}
-	
-	public void isoAdd(City city) {
-		// TODO Auto-generated method stub
-		//adds to isoCityNames here
-		
-	}
-	
+
+
 	public void addRoad(QEdge road, City start, City end) {
 		// TODO Auto-generated method stub
 		//must take care of adding cities for the roads here:
-		
+
 	}
 }
