@@ -1,4 +1,4 @@
-package cmsc420.meeshquest.part1;
+package cmsc420.meeshquest.part2;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -190,8 +190,8 @@ public class MeeshQuest {
 			//command.processUnmapCity(commandNode);
 		} else if (name.equals("saveMap")) {
 			command.processSaveMap(commandNode);
-		} else if (name.equals("printPRQuadtree")) {
-			command.processPrintPRQuadtree(commandNode);
+		} else if (name.equals("printPMQuadtree")) {
+			command.processPrintPMQuadtree(commandNode);
 		} else if (name.equals("rangeCities")) {
 			command.processRangeCities(commandNode);
 		} else if (name.equals("nearestCity")) {

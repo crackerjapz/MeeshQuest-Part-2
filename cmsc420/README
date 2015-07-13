@@ -19,5 +19,11 @@ I used notes from
  file. It also heavily draws from the implementation of the AVLTree from 
  http://users.cis.fiu.edu/~weiss/dsaajava/code/DataStructures/AvlTree.java
  
+ There are also heavy flourishes of the implementation of the AVL Tree in Rosettacode.org
+  I have modified it slightly, but the rebalancing is pulled directly from that. Any mistakes 
+  in implementation are my own.
+  
+  http://rosettacode.org/wiki/AVL_tree#Java
+ 
  The PM3QuadTree implementation is taken from the notes, the canonical, and the 
  spec.

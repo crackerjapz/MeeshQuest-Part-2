@@ -9,6 +9,8 @@ import java.util.HashSet;
 
 import cmsc420.exception.CityAlreadyMappedException;
 import cmsc420.exception.CityOutOfBoundsException;
+import cmsc420.exception.RoadAlreadyMappedException;
+import cmsc420.exception.RoadOutOfBoundsException;
 import cmsc420.geom.Circle2D;
 import cmsc420.structure.City;
 import cmsc420.utils.Canvas;
@@ -38,6 +40,9 @@ public class PM3QuadTree {
 	/** used to keep track of cities within the spatial map */
 	protected HashSet<String> cityNames;
 
+	/** used to keep track of roads within the spatial map */
+	protected HashSet<QEdge> roadList;
+
 	/**used to keep track of isolated cities within the map */
 	protected HashSet<String> isoCityNames;
 
@@ -46,6 +51,7 @@ public class PM3QuadTree {
 		spatialOrigin = new Point2D.Float(0, 0);
 		cityNames = new HashSet<String>();
 		isoCityNames = new HashSet<String>();
+		roadList = new HashSet<QEdge>();
 	}
 	//sets up the PMQuadTree
 	public void setRange(int spatialWidth, int spatialHeight) {
@@ -77,6 +83,10 @@ public class PM3QuadTree {
 	public boolean isInIso(City city) {
 		String name = city.getName();
 		return (isoCityNames.contains(name));
+	}
+	public boolean isInIso(String city) {
+		//String name = city.getName();
+		return (isoCityNames.contains(city));
 	}
 	/**
 	 * Gets the root node of the PM Quadtree.
@@ -431,8 +441,10 @@ public class PM3QuadTree {
 
 	//by compartmentalizing the city list to add the names in these functions, a single
 	//add function can operate for both types of cities easily.
-	public void add(City city) throws CityAlreadyMappedException,
-									CityOutOfBoundsException{
+	public void add(City city) throws 
+	CityAlreadyMappedException,
+	CityOutOfBoundsException{
+		
 		if (cityNames.contains(city.getName()) || isoCityNames.contains(city.getName())) {
 			/* city already mapped */
 			throw new CityAlreadyMappedException();
@@ -447,15 +459,33 @@ public class PM3QuadTree {
 			throw new CityOutOfBoundsException();
 		}
 
-		/* insert city into PRQuadTree */
-		isoCityNames.add(city.getName());
+		/* insert city into PMQuadTree */
+		//isoCityNames.add(city.getName());
 		root = root.add(city, spatialOrigin, spatialWidth, spatialHeight);
 	}
 
 
-	public void addRoad(QEdge road, City start, City end) {
+	public void addRoad(City start, City end) throws 
+	RoadAlreadyMappedException,
+	RoadOutOfBoundsException{
+		
+		QEdge insert = new QEdge(start, end);
+		if (roadList.contains(insert)){
+			throw new RoadAlreadyMappedException();
+		}
+
+		Rectangle2D.Float test = new Rectangle2D.Float(spatialOrigin.x, spatialOrigin.y,
+				spatialWidth, spatialHeight);
+		if (!insert.intersects(test)){
+			throw new RoadOutOfBoundsException();
+		}
+
+
 		// TODO Auto-generated method stub
 		//must take care of adding cities for the roads here:
 
+	}
+	public void addIso(String name) {
+		isoCityNames.add(name);
 	}
 }

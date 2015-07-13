@@ -26,6 +26,10 @@ import java.util.SortedMap;
  * I'm sure I implemented some useless functions here, just trying to 
  * make sure I have a complete implementation. If it has it in TreeMap, and it doesn't look 
  * like a Red/Black implementation, I'm throwing it in there. 
+ * 
+ * There are also heavy flourishes of the implementation of the AVL Tree in Rosettacode.org
+ * I have modified it slightly, but the rebalancing is pulled directly from that. Any mistakes 
+ * in implementation are my own. 
  */
 public class AvlGTree<K, V> 
 extends AbstractMap<K, V>
@@ -40,6 +44,12 @@ implements SortedMap<K, V> {
 	private transient Entry <K,V> root = null;
 
 	private transient int size = 0;
+
+	private int height(Entry<K,V> n) {
+	    if (n == null)
+	        return -1;
+	    return 1 + Math.max(height(n.left), height(n.right));
+	}
 
 	//initializes new AVL Tree
 	public AvlGTree() {
@@ -84,29 +94,256 @@ implements SortedMap<K, V> {
 				return true;
 		return false;
 	}
+
+	@Override
+	public V get(Object key) {
+		Entry<K,V> p = getEntry(key);
+		return (p==null ? null : p.value);
+	}
+	
+	//checks the size, returns true if size = 0
+	@Override
+	public boolean isEmpty() {
+		if (size == 0) return true;
+		return false;
+	}
+	
+	private void rebalance(Entry<K,V> n) {
+	        setBalance(n);
+	 
+	        if (n.balance == -2) {
+	            if (height(n.left.left) >= height(n.left.right))
+	                n = rotateRight(n);
+	            else
+	                n = rotateLeftThenRight(n);
+	 
+	        } else if (n.balance == 2) {
+	            if (height(n.right.right) >= height(n.right.left))
+	                n = rotateLeft(n);
+	            else
+	                n = rotateRightThenLeft(n);
+	        }
+	 
+	        if (n.parent != null) {
+	            rebalance(n.parent);
+	        } else {
+	            root = n;
+	        }
+	    }
+	 
+	    private Entry<K,V> rotateLeft(Entry<K,V> a) {
+	 
+	        Entry<K,V> b = a.right;
+	        b.parent = a.parent;
+	 
+	        a.right = b.left;
+	 
+	        if (a.right != null)
+	            a.right.parent = a;
+	 
+	        b.left = a;
+	        a.parent = b;
+	 
+	        if (b.parent != null) {
+	            if (b.parent.right == a) {
+	                b.parent.right = b;
+	            } else {
+	                b.parent.left = b;
+	            }
+	        }
+	 
+	        setBalance(a, b);
+	 
+	        return b;
+	    }
+	 
+	    private Entry<K,V> rotateRight(Entry<K,V> a) {
+	 
+	    	Entry<K,V> b = a.left;
+	        b.parent = a.parent;
+	 
+	        a.left = b.right;
+	 
+	        if (a.left != null)
+	            a.left.parent = a;
+	 
+	        b.right = a;
+	        a.parent = b;
+	 
+	        if (b.parent != null) {
+	            if (b.parent.right == a) {
+	                b.parent.right = b;
+	            } else {
+	                b.parent.left = b;
+	            }
+	        }
+	 
+	        setBalance(a, b);
+	 
+	        return b;
+	    }
+	 
+	    private Entry<K,V> rotateLeftThenRight(Entry<K,V> n) {
+	        n.left = rotateLeft(n.left);
+	        return rotateRight(n);
+	    }
+	 
+	    private Entry<K,V> rotateRightThenLeft(Entry<K,V> n) {
+	        n.right = rotateRight(n.right);
+	        return rotateLeft(n);
+	    }
+	 
+	private void setBalance(Entry<K,V>... nodes) {
+	        for (Entry<K,V> n : nodes)
+	            n.balance = height(n.right) - height(n.left);
+	    }
+	@Override
+	public V put(K key, V value) {
+		// TODO Auto-generated method stub
+		Entry<K,V> t = root;
+		if (t == null) {
+			// TBD:
+			// 5045147: (coll) Adding null to an empty TreeSet should
+			// throw NullPointerException
+			//
+			// compare(key, key); // type check
+			root = new Entry<K,V>(key, value, null);
+			size = 1;
+			modCount++;
+			return null;
+		}
+		int cmp;
+		Entry<K,V> parent;
+		// split comparator and comparable paths
+		Comparator<? super K> cpr = comparator;
+		if (cpr != null) {
+			do {
+				parent = t;
+				cmp = cpr.compare(key, t.key);
+				if (cmp < 0)
+					t = t.left;
+				else if (cmp > 0)
+					t = t.right;
+				else
+					return t.setValue(value);
+			} while (t != null);
+		}
+		else {
+			if (key == null)
+				throw new NullPointerException();
+			Comparable<? super K> k = (Comparable<? super K>) key;
+			do {
+				parent = t;
+				cmp = k.compareTo(t.key);
+				if (cmp < 0)
+					t = t.left;
+				else if (cmp > 0)
+					t = t.right;
+				else
+					return t.setValue(value);
+			} while (t != null);
+		}
+		Entry<K,V> e = new Entry<K,V>(key, value, parent);
+		if (cmp < 0)
+			parent.left = e;
+		else
+			parent.right = e;
+		//fixAfterInsertion(e);
+		rebalance(parent);
+		size++;
+		modCount++;
+		return null;
+	
+	}
+
+	public void putAll(Map<? extends K, ? extends V> map) {
+		super.putAll(map);
+	
+	}
+
+	//not implemented in part 2
+	@Override
+	public V remove(Object arg0) {
+	
+		return null;
+	}
+
+	// returns the size of the Tree
+	@Override
+	public int size() {
+	
+		return size;
+	}
+
+	//returns the comparator this Map uses
+	@Override
+	public Comparator<? super K> comparator() {
+	
+		return comparator;
+	}
+
+	final int compare(Object k1, Object k2) {
+		return comparator==null ? ((Comparable<? super K>)k1).compareTo((K)k2)
+				: comparator.compare((K)k1, (K)k2);
+	}
+
+	@Override
+	public Set<Map.Entry<K, V>> entrySet() {
+		EntrySet es = entrySet;
+		return (es != null) ? es : (entrySet = new EntrySet());
+		//return null;
+	}
+
+	@Override
+	public K firstKey() {
+		return getFirstEntry().key;
+	}
+
+	//not implemented in part 2
+	@Override
+	public SortedMap<K, V> headMap(K arg0) {
+	
+		return null;
+	}
+
+	//not implemented in part 2
+	@Override
+	public Set<K> keySet() {
+	
+		return null;
+	}
+
+	@Override
+	public K lastKey() {
+		return getLastEntry().key;
+	}
+
+	@Override
+	public SortedMap<K, V> subMap(K fromKey, K toKey) {
+	
+		return new SubMap<K,V>(fromKey, toKey, this);
+		
+	}
+
+	//not implemented in Part 2
+	@Override
+	public SortedMap<K, V> tailMap(K arg0) {
+	
+		return null;
+	}
+
+	//not implemented in Part 2
+	@Override
+	public Collection<V> values() {
+	
+		return null;
+	}
+
 	//comparison for any object
 	final static boolean valEquals(Object o1, Object o2) {
 		return (o1 == null ? o2 == null : o1.equals(o2));
 	}
 
-	final Entry<K,V> getEntry(Object key) {
-		if (comparator != null)
-			return getEntryUsingComparator(key);
-		if (key == null)
-			throw new NullPointerException();
-		Comparable<? super K> k = (Comparable<? super K>) key;
-		Entry<K,V> p = root;
-		while (p != null) {
-			int cmp = k.compareTo(p.key);
-			if (cmp < 0)
-				p = p.left;
-			else if (cmp > 0)
-				p = p.right;
-			else
-				return p;
-		}
-		return null;
-	}
 	Entry<K,V> successor(Entry<K,V> t) {
 		if (t == null)
 			return null;
@@ -162,17 +399,27 @@ implements SortedMap<K, V> {
 		return null;
 	}
 
-	final Entry<K,V> getLastEntry() {
-
+	final Entry<K,V> getEntry(Object key) {
+		if (comparator != null)
+			return getEntryUsingComparator(key);
+		if (key == null)
+			throw new NullPointerException();
+		Comparable<? super K> k = (Comparable<? super K>) key;
 		Entry<K,V> p = root;
-		if (p != null)
-			while (p.right != null)
+		while (p != null) {
+			int cmp = k.compareTo(p.key);
+			if (cmp < 0)
+				p = p.left;
+			else if (cmp > 0)
 				p = p.right;
-		return p;
+			else
+				return p;
+		}
+		return null;
 	}
 
 	final Entry<K,V> getFirstEntry() {
-
+	
 		Entry<K,V> p = root;
 		if (p != null)
 			while (p.left != null)
@@ -180,157 +427,13 @@ implements SortedMap<K, V> {
 		return p;
 	}
 
-	@Override
-	public V get(Object key) {
-		Entry<K,V> p = getEntry(key);
-		return (p==null ? null : p.value);
-	}
+	final Entry<K,V> getLastEntry() {
 
-	//checks the size, returns true if size = 0
-	@Override
-	public boolean isEmpty() {
-		if (size == 0) return true;
-		return false;
-	}
-
-	@Override
-	public V put(K key, V value) {
-		// TODO Auto-generated method stub
-		Entry<K,V> t = root;
-		if (t == null) {
-			// TBD:
-			// 5045147: (coll) Adding null to an empty TreeSet should
-			// throw NullPointerException
-			//
-			// compare(key, key); // type check
-			root = new Entry<K,V>(key, value, null);
-			size = 1;
-			modCount++;
-			return null;
-		}
-		int cmp;
-		Entry<K,V> parent;
-		// split comparator and comparable paths
-		Comparator<? super K> cpr = comparator;
-		if (cpr != null) {
-			do {
-				parent = t;
-				cmp = cpr.compare(key, t.key);
-				if (cmp < 0)
-					t = t.left;
-				else if (cmp > 0)
-					t = t.right;
-				else
-					return t.setValue(value);
-			} while (t != null);
-		}
-		else {
-			if (key == null)
-				throw new NullPointerException();
-			Comparable<? super K> k = (Comparable<? super K>) key;
-			do {
-				parent = t;
-				cmp = k.compareTo(t.key);
-				if (cmp < 0)
-					t = t.left;
-				else if (cmp > 0)
-					t = t.right;
-				else
-					return t.setValue(value);
-			} while (t != null);
-		}
-		Entry<K,V> e = new Entry<K,V>(key, value, parent);
-		if (cmp < 0)
-			parent.left = e;
-		else
-			parent.right = e;
-		//fixAfterInsertion(e);
-		size++;
-		modCount++;
-		return null;
-
-	}
-
-
-	public void putAll(Map<? extends K, ? extends V> map) {
-		super.putAll(map);
-
-	}
-
-	//not implemented in part 2
-	@Override
-	public V remove(Object arg0) {
-
-		return null;
-	}
-
-	// returns the size of the Tree
-	@Override
-	public int size() {
-
-		return size;
-	}
-
-	//returns the comparator this Map uses
-	@Override
-	public Comparator<? super K> comparator() {
-
-		return comparator;
-	}
-	final int compare(Object k1, Object k2) {
-		return comparator==null ? ((Comparable<? super K>)k1).compareTo((K)k2)
-				: comparator.compare((K)k1, (K)k2);
-	}
-	@Override
-	public Set<Map.Entry<K, V>> entrySet() {
-		EntrySet es = entrySet;
-		return (es != null) ? es : (entrySet = new EntrySet());
-		//return null;
-	}
-
-	@Override
-	public K firstKey() {
-		return getFirstEntry().key;
-	}
-
-	//not implemented in part 2
-	@Override
-	public SortedMap<K, V> headMap(K arg0) {
-
-		return null;
-	}
-
-	//not implemented in part 2
-	@Override
-	public Set<K> keySet() {
-
-		return null;
-	}
-
-	@Override
-	public K lastKey() {
-		return getLastEntry().key;
-	}
-
-	@Override
-	public SortedMap<K, V> subMap(K fromKey, K toKey) {
-
-		return new SubMap<K,V>(fromKey, toKey, this);
-		
-	}
-
-	//not implemented in Part 2
-	@Override
-	public SortedMap<K, V> tailMap(K arg0) {
-
-		return null;
-	}
-
-	//not implemented in Part 2
-	@Override
-	public Collection<V> values() {
-
-		return null;
+		Entry<K,V> p = root;
+		if (p != null)
+			while (p.right != null)
+				p = p.right;
+		return p;
 	}
 
 	class SubMap<K,V> implements SortedMap<K,V>{
@@ -473,6 +576,7 @@ implements SortedMap<K, V> {
 	class Entry <K,V> implements Map.Entry<K, V> {
 
 		int height;
+		int balance;
 		Entry<K,V> left = null;
 		Entry<K,V> right = null;
 		Entry<K,V> parent;

@@ -24,7 +24,10 @@ import cmsc420.utils.Canvas;
 import cmsc420.drawing.*;
 import cmsc420.exception.CityAlreadyMappedException;
 import cmsc420.exception.CityOutOfBoundsException;
+import cmsc420.exception.RoadAlreadyMappedException;
+import cmsc420.exception.RoadOutOfBoundsException;
 import cmsc420.geom.*;
+import cmsc420.sortedmap.AvlGTree;
 import cmsc420.structure.*;
 import cmsc420.structure.pmquadtree.PM3QuadTree;
 import cmsc420.structure.pmquadtree.PM3QuadTree.Node;
@@ -50,6 +53,14 @@ public class Command {
 	/** root node of results document */
 	protected Element resultsNode;
 
+	protected final AvlGTree<String, City> testing = new AvlGTree<String, City>(new Comparator<String>() {
+
+		@Override
+		public int compare(String o1, String o2) {
+			return o2.compareTo(o1);
+		}
+
+	});
 	/**
 	 * stores created cities sorted by their names (used with listCities command)
 	 */
@@ -100,6 +111,11 @@ public class Command {
 	private Element getCommandNode(final Element node) {
 		final Element commandNode = results.createElement("command");
 		commandNode.setAttribute("name", node.getNodeName());
+		
+		
+		final String value = node.getAttribute("id");
+
+		commandNode.setAttribute("id", value);
 		return commandNode;
 	}
 
@@ -210,7 +226,7 @@ public class Command {
 	public void processCommands(final Element node) {
 		spatialWidth = Integer.parseInt(node.getAttribute("spatialWidth"));
 		spatialHeight = Integer.parseInt(node.getAttribute("spatialHeight"));
-
+		int gVal = Integer.parseInt(node.getAttribute("g"));
 		/* initialize canvas */
 		Canvas.instance.setFrameSize(spatialWidth, spatialHeight);
 		/* add a rectangle to show where the bounds of the map are located */
@@ -219,8 +235,9 @@ public class Command {
 		Canvas.instance.addRectangle(0, 0, spatialWidth, spatialHeight, Color.BLACK,
 				false);
 
-		/* set PR Quadtree range */
+		/* set Pm Quadtree range */
 		pmQuadtree.setRange(spatialWidth, spatialHeight);
+		testing.setG(gVal);
 	}
 
 	/**
@@ -421,7 +438,7 @@ public class Command {
 			try {
 				/* insert city into PR Quadtree */
 				pmQuadtree.add(city);
-
+				pmQuadtree.addIso(city.getName());
 				/* add city to canvas */
 				Canvas.instance.addPoint(city.getName(), city.getX(), city.getY(),
 						Color.BLACK);
@@ -432,6 +449,46 @@ public class Command {
 				addErrorNode("cityAlreadyMapped", commandNode, parametersNode);
 			} catch (CityOutOfBoundsException e) {
 				addErrorNode("cityOutOfBounds", commandNode, parametersNode);
+			}
+		}
+	}
+	
+	public void processMapRoad(final Element node) {
+		final Element commandNode = getCommandNode(node);
+		final Element parametersNode = results.createElement("parameters");
+
+		final String start = processStringAttribute(node, "start", parametersNode);
+		final String end = processStringAttribute(node, "end", parametersNode);
+
+		final Element outputNode = results.createElement("output");
+
+		if (!citiesByName.containsKey(start)) {
+			addErrorNode("startPointDoesNotExist", commandNode, parametersNode);
+		}else if (!citiesByName.containsKey(end)) {
+			addErrorNode("endPointDoesNotExist", commandNode, parametersNode);
+		}else if (start.equals(end)) {
+			addErrorNode("startEqualsEnd", commandNode, parametersNode);
+		}else if (pmQuadtree.isInIso(start) || pmQuadtree.isInIso(end)) {
+			addErrorNode("startOrEndIsIsolated", commandNode, parametersNode);
+		} else {
+			City begin = citiesByName.get(start);
+			City ending = citiesByName.get(end);
+			
+			try {
+				/* insert city into PR Quadtree */
+				pmQuadtree.addRoad(begin, ending);
+
+				/* add city to canvas */
+				Canvas.instance.addLine(begin.getX(), begin.getY(),
+						ending.getX(), ending.getY(),
+						Color.BLACK);
+
+				/* add success node to results */
+				addSuccessNode(commandNode, parametersNode, outputNode);
+			} catch (RoadAlreadyMappedException e) {
+				addErrorNode("roadAlreadyMapped", commandNode, parametersNode);
+			} catch (RoadOutOfBoundsException e) {
+				addErrorNode("roadOutOfBounds", commandNode, parametersNode);
 			}
 		}
 	}
@@ -499,7 +556,7 @@ public class Command {
 	 * @param node
 	 *            printPRQuadtree command to be processed
 	 */
-	public void processPrintPRQuadtree(final Element node) {
+	public void processPrintPMQuadtree(final Element node) {
 		final Element commandNode = getCommandNode(node);
 		final Element parametersNode = results.createElement("parameters");
 		final Element outputNode = results.createElement("output");

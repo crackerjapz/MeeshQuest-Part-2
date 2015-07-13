@@ -1,2 +1,4 @@
 /CityAlreadyMappedException.class
 /CityOutOfBoundsException.class
+/RoadAlreadyMappedException.class
+/RoadOutOfBoundsException.class
