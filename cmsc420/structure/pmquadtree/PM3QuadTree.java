@@ -482,12 +482,18 @@ public class PM3QuadTree {
 		}
 
 		if (Lib.intersects(start.pt, test)){
-			root.add(start, spatialOrigin, spatialWidth, spatialHeight);
+			root = root.add(start, spatialOrigin, spatialWidth, spatialHeight);
 			cityNames.add(start.getName());
+			/* add city to canvas */
+			Canvas.instance.addPoint(start.getName(), start.getX(), start.getY(),
+					Color.BLACK);
 		}
 		if (Lib.intersects(end.pt, test)){
-			root.add(end, spatialOrigin, spatialWidth, spatialHeight);
+			root = root.add(end, spatialOrigin, spatialWidth, spatialHeight);
 			cityNames.add(end.getName());
+			/* add city to canvas */
+			Canvas.instance.addPoint(end.getName(), end.getX(), end.getY(),
+					Color.BLACK);
 		}
 	
 		//must take care of adding cities for the roads here:

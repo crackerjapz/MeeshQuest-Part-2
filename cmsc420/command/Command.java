@@ -486,6 +486,10 @@ public class Command {
 						Color.BLACK);
 
 				/* add success node to results */
+				final Element createdRoad = results.createElement("roadCreated");
+				createdRoad.setAttribute("start", begin.getName());
+				createdRoad.setAttribute("end", ending.getName());
+				outputNode.appendChild(createdRoad);
 				addSuccessNode(commandNode, parametersNode, outputNode);
 			} catch (RoadAlreadyMappedException e) {
 				addErrorNode("roadAlreadyMapped", commandNode, parametersNode);
@@ -809,8 +813,11 @@ public class Command {
 			Gray g = (Gray) currNode;
 			for (int i = 0; i < 4; i++) {
 				Node kid = g.children[i];
-				QuadrantDistance test = new QuadrantDistance(kid, point);
-				if (kid.getType() != Node.WHITE && !q.contains(test)) {
+				
+				if (kid.getType() == Node.GRAY || 
+						(kid.getType() == Node.BLACK && ((Black) kid).hasCity())) {
+					QuadrantDistance test = new QuadrantDistance(kid, point);
+					if (!q.contains(test))
 					q.add(test);
 				}
 			}
@@ -846,6 +853,21 @@ public class Command {
 		public Node quadtreeNode;
 		private double distance;
 
+		/*
+		public QuadrantDistance(Node node, Point2D.Float pt) {
+			quadtreeNode = node;
+			if (node.getType() == Node.GRAY) {
+				Gray gray = (Gray) node;
+				distance = Shape2DDistanceCalculator.distance(pt, 
+						new Rectangle2D.Float(gray.origin.x, gray.origin.y, gray.width, gray.height));
+			} else if (node.getType() == Node.BLACK) {
+				Black leaf = (Black) node;
+				distance = pt.distance(leaf.getCity().pt);
+			} else {
+				throw new IllegalArgumentException("Only leaf or internal node can be passed in");
+			}
+		}*/
+		
 		public QuadrantDistance(Node node, Point2D.Float pt) {
 			quadtreeNode = node;
 			if (node.getType() == Node.GRAY) {
