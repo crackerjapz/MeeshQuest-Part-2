@@ -719,12 +719,12 @@ public class Command {
 	 */
 	private void rangeCitiesHelper(final Point2D.Double point,
 			final int radius, final Node node, final TreeSet<City> citiesInRange) {
-		if (node.getType() == Node.BLACK) {
-			final Black leaf = (Black) node;
-			final double distance = point.distance(leaf.getCity().toPoint2D());
+		if (node.getType() == Node.BLACK && ((Black) node).hasCity()) {
+			final Black black = (Black) node;
+			final double distance = point.distance(black.getCity().toPoint2D());
 			if (distance <= radius) {
 				/* city is in range */
-				final City city = leaf.getCity();
+				final City city = black.getCity();
 				citiesInRange.add(city);
 			}
 		} else if (node.getType() == Node.GRAY) {
