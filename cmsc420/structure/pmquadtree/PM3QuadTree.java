@@ -444,7 +444,7 @@ public class PM3QuadTree {
 	public void add(City city) throws 
 	CityAlreadyMappedException,
 	CityOutOfBoundsException{
-		
+
 		if (cityNames.contains(city.getName()) || isoCityNames.contains(city.getName())) {
 			/* city already mapped */
 			throw new CityAlreadyMappedException();
@@ -468,7 +468,7 @@ public class PM3QuadTree {
 	public void addRoad(City start, City end) throws 
 	RoadAlreadyMappedException,
 	RoadOutOfBoundsException{
-		
+
 		QEdge insert = new QEdge(start, end);
 		if (roadList.contains(insert)){
 			throw new RoadAlreadyMappedException();
@@ -476,14 +476,24 @@ public class PM3QuadTree {
 
 		Rectangle2D.Float test = new Rectangle2D.Float(spatialOrigin.x, spatialOrigin.y,
 				spatialWidth, spatialHeight);
+
 		if (!insert.intersects(test)){
 			throw new RoadOutOfBoundsException();
 		}
 
-
-		// TODO Auto-generated method stub
+		if (Lib.intersects(start.pt, test)){
+			root.add(start, spatialOrigin, spatialWidth, spatialHeight);
+			cityNames.add(start.getName());
+		}
+		if (Lib.intersects(end.pt, test)){
+			root.add(end, spatialOrigin, spatialWidth, spatialHeight);
+			cityNames.add(end.getName());
+		}
+	
 		//must take care of adding cities for the roads here:
-
+		QEdge road = new QEdge(start, end);
+		root.addRoad(road);
+		roadList.add(road);
 	}
 	public void addIso(String name) {
 		isoCityNames.add(name);

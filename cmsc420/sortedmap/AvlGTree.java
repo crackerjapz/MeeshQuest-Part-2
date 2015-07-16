@@ -111,13 +111,13 @@ implements SortedMap<K, V> {
 	private void rebalance(Entry<K,V> n) {
 	        setBalance(n);
 	 
-	        if (n.balance == -2) {
+	        if (n.balance <= -g) {
 	            if (height(n.left.left) >= height(n.left.right))
 	                n = rotateRight(n);
 	            else
 	                n = rotateLeftThenRight(n);
 	 
-	        } else if (n.balance == 2) {
+	        } else if (n.balance >= g) {
 	            if (height(n.right.right) >= height(n.right.left))
 	                n = rotateLeft(n);
 	            else
