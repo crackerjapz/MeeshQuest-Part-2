@@ -33,6 +33,7 @@ import cmsc420.structure.pmquadtree.PM3QuadTree;
 import cmsc420.structure.pmquadtree.PM3QuadTree.Node;
 import cmsc420.structure.pmquadtree.PM3QuadTree.Black;
 import cmsc420.structure.pmquadtree.PM3QuadTree.Gray;
+import cmsc420.structure.pmquadtree.QEdge;
 //import cmsc420.structure.prquadtree.PRQuadtree;
 //import cmsc420.structure.prquadtree.Node;
 //import cmsc420.structure.prquadtree.LeafNode;
@@ -573,7 +574,7 @@ public class Command {
 		} else {
 			/* print PR Quadtree */
 			final Element quadtreeNode = results.createElement("quadtree");
-			printPRQuadtreeHelper(pmQuadtree.getRoot(), quadtreeNode);
+			printPMQuadtreeHelper(pmQuadtree.getRoot(), quadtreeNode);
 
 			outputNode.appendChild(quadtreeNode);
 
@@ -590,7 +591,7 @@ public class Command {
 	 * @param xmlNode
 	 *            XML node representing the current PR Quadtree node
 	 */
-	private void printPRQuadtreeHelper(final Node currentNode,
+	private void printPMQuadtreeHelper(final Node currentNode,
 			final Element xmlNode) {
 		if (currentNode.getType() == Node.WHITE) {
 			Element white = results.createElement("white");
@@ -598,24 +599,49 @@ public class Command {
 		} else {
 			if (currentNode.getType() == Node.BLACK) {
 				/* leaf node */
-				final Black currentLeaf = (Black) currentNode;
+				final Black currentBlack = (Black) currentNode;
+				int card = currentBlack.getRoadsSize();
 				final Element black = results.createElement("black");
-				black.setAttribute("name", currentLeaf.getCity().getName());
-				black.setAttribute("x", Integer.toString((int) currentLeaf
+				
+				if (currentBlack.hasCity()){
+					card++; 
+					final Element city = results.createElement("city");
+					city.setAttribute("name", currentBlack.getCity().getName());
+					city.setAttribute("color", currentBlack.getCity().getColor());
+					city.setAttribute("x", Integer.toString((int) currentBlack
+							.getCity().getX()));
+					city.setAttribute("radius", Integer.toString((int) currentBlack
+							.getCity().getRadius()));
+					city.setAttribute("y", Integer.toString((int) currentBlack
+							.getCity().getY()));
+					black.appendChild(city);
+				}
+				
+				black.setAttribute("cardinality", Integer.toString(card));
+				if (currentBlack.getRoadsSize() > 0){
+					for(QEdge road : currentBlack.getRoads()){
+						final Element roads = results.createElement("road");
+						roads.setAttribute("end", road.getEndName());
+						roads.setAttribute("start", road.getStartName());
+						black.appendChild(roads);
+					}
+				}
+				/*black.setAttribute("name", currentBlack.getCity().getName());
+				black.setAttribute("x", Integer.toString((int) currentBlack
 						.getCity().getX()));
-				black.setAttribute("y", Integer.toString((int) currentLeaf
-						.getCity().getY()));
+				black.setAttribute("y", Integer.toString((int) currentBlack
+						.getCity().getY()));*/
 				xmlNode.appendChild(black);
 			} else {
 				/* internal node */
-				final Gray currentInternal = (Gray) currentNode;
+				final Gray currentGray = (Gray) currentNode;
 				final Element gray = results.createElement("gray");
-				gray.setAttribute("x", Integer.toString((int) currentInternal
+				gray.setAttribute("x", Integer.toString((int) currentGray
 						.getCenterX()));
-				gray.setAttribute("y", Integer.toString((int) currentInternal
+				gray.setAttribute("y", Integer.toString((int) currentGray
 						.getCenterY()));
 				for (int i = 0; i < 4; i++) {
-					printPRQuadtreeHelper(currentInternal.getChild(i), gray);
+					printPMQuadtreeHelper(currentGray.getChild(i), gray);
 				}
 				xmlNode.appendChild(gray);
 			}

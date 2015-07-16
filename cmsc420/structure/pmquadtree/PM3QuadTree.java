@@ -264,6 +264,13 @@ public class PM3QuadTree {
 			return this;
 		}
 
+		public int getRoadsSize(){
+			return roads.size();
+		}
+		
+		public HashSet<QEdge> getRoads(){
+			return roads;
+		}
 	}
 
 	public class Gray extends Node{
