@@ -841,7 +841,8 @@ public class Command {
 				Node kid = g.children[i];
 				
 				if (kid.getType() == Node.GRAY || 
-						(kid.getType() == Node.BLACK && ((Black) kid).hasCity())) {
+						(kid.getType() == Node.BLACK && ((Black) kid).hasCity() &&
+						 !pmQuadtree.isInIso(((Black) kid).getCity()))) {
 					QuadrantDistance test = new QuadrantDistance(kid, point);
 					if (!q.contains(test))
 					q.add(test);
@@ -861,11 +862,13 @@ public class Command {
 		while (currNode.getType() != Node.BLACK) {
 			Gray g = (Gray) currNode;
 			for (int i = 0; i < 4; i++) {
-				Node kid = g.children[i];
-				QuadrantDistance test = new QuadrantDistance(kid, point);
-				if (!q.contains(test) &&
-						(kid.getType() == Node.GRAY || 
-						(kid.getType() == Node.BLACK && pmQuadtree.isInIso(((Black) kid).getCity())))) {
+Node kid = g.children[i];
+				
+				if (kid.getType() == Node.GRAY || 
+						(kid.getType() == Node.BLACK && ((Black) kid).hasCity() &&
+						 pmQuadtree.isInIso(((Black) kid).getCity()))) {
+					QuadrantDistance test = new QuadrantDistance(kid, point);
+					if (!q.contains(test))
 					q.add(test);
 				}
 			}

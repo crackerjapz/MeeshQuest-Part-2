@@ -227,6 +227,14 @@ public class PM3QuadTree {
 			return (city == null) ? false : true;
 		}
 
+
+		public boolean hasCityRoads(){
+			//	if (city == null) return false;
+			//return true;
+
+			return (city == null) ? false : true;
+		}
+
 		/**
 		 * Gets the city contained by this node.
 		 * 
