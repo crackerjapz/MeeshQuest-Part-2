@@ -213,7 +213,7 @@ public class PM3QuadTree {
 	}
 
 	public class Black extends Node {
-		HashSet <QEdge> roads;
+		HashSet <QEdge> roads = new HashSet<QEdge>();
 		City city = null;
 
 		public Black(){

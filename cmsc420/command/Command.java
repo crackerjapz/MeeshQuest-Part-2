@@ -112,10 +112,12 @@ public class Command {
 		final Element commandNode = results.createElement("command");
 		commandNode.setAttribute("name", node.getNodeName());
 		
-		
-		final String value = node.getAttribute("id");
+		if (node.getAttribute("id").compareTo("") != 0) {
+			
+			final String value = node.getAttribute("id");
 
-		commandNode.setAttribute("id", value);
+			commandNode.setAttribute("id", value);
+		}
 		return commandNode;
 	}
 
