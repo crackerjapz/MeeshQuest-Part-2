@@ -80,6 +80,12 @@ public class PM3QuadTree {
 		return (root == SingletonWhiteNode);
 	}
 
+	public boolean hasCites() {
+		return (root == SingletonWhiteNode);
+	}
+	public boolean hasIsoCites() {
+		return (root == SingletonWhiteNode);
+	}
 	public boolean isInIso(City city) {
 		String name = city.getName();
 		return (isoCityNames.contains(name));

@@ -112,9 +112,9 @@ public class Command {
 	private Element getCommandNode(final Element node) {
 		final Element commandNode = results.createElement("command");
 		commandNode.setAttribute("name", node.getNodeName());
-		
+
 		if (node.getAttribute("id").compareTo("") != 0) {
-			
+
 			final String value = node.getAttribute("id");
 
 			commandNode.setAttribute("id", value);
@@ -455,7 +455,7 @@ public class Command {
 			}
 		}
 	}
-	
+
 	public void processMapRoad(final Element node) {
 		final Element commandNode = getCommandNode(node);
 		final Element parametersNode = results.createElement("parameters");
@@ -476,7 +476,7 @@ public class Command {
 		} else {
 			City begin = citiesByName.get(start);
 			City ending = citiesByName.get(end);
-			
+
 			try {
 				/* insert city into PR Quadtree */
 				pmQuadtree.addRoad(begin, ending);
@@ -602,7 +602,7 @@ public class Command {
 				final Black currentBlack = (Black) currentNode;
 				int card = currentBlack.getRoadsSize();
 				final Element black = results.createElement("black");
-				
+
 				if (currentBlack.hasCity()){
 					card++; 
 					final Element city = results.createElement("city");
@@ -616,7 +616,7 @@ public class Command {
 							.getCity().getY()));
 					black.appendChild(city);
 				}
-				
+
 				black.setAttribute("cardinality", Integer.toString(card));
 				if (currentBlack.getRoadsSize() > 0){
 					for(QEdge road : currentBlack.getRoads()){
@@ -763,6 +763,10 @@ public class Command {
 			return;
 		}
 
+		if (!pmQuadtree.hasCites()){
+			addErrorNode("cityNotFound", commandNode, parametersNode);
+			return;
+		}
 		//final PriorityQueue<NearestCity> nearCities = new PriorityQueue<NearestCity>(
 		//		citiesByName.size());
 
@@ -806,6 +810,10 @@ public class Command {
 			return;
 		}
 
+		if (!pmQuadtree.hasIsoCites()){
+			addErrorNode("cityNotFound", commandNode, parametersNode);
+			return;
+		}
 		//final PriorityQueue<NearestCity> nearCities = new PriorityQueue<NearestCity>(
 		//		citiesByName.size());
 
@@ -839,13 +847,13 @@ public class Command {
 			Gray g = (Gray) currNode;
 			for (int i = 0; i < 4; i++) {
 				Node kid = g.children[i];
-				
+
 				if (kid.getType() == Node.GRAY || 
 						(kid.getType() == Node.BLACK && ((Black) kid).hasCity() &&
-						 !pmQuadtree.isInIso(((Black) kid).getCity()))) {
+						!pmQuadtree.isInIso(((Black) kid).getCity()))) {
 					QuadrantDistance test = new QuadrantDistance(kid, point);
 					if (!q.contains(test))
-					q.add(test);
+						q.add(test);
 				}
 			}
 			currNode = q.remove().quadtreeNode;
@@ -862,14 +870,14 @@ public class Command {
 		while (currNode.getType() != Node.BLACK) {
 			Gray g = (Gray) currNode;
 			for (int i = 0; i < 4; i++) {
-Node kid = g.children[i];
-				
+				Node kid = g.children[i];
+
 				if (kid.getType() == Node.GRAY || 
 						(kid.getType() == Node.BLACK && ((Black) kid).hasCity() &&
-						 pmQuadtree.isInIso(((Black) kid).getCity()))) {
+						pmQuadtree.isInIso(((Black) kid).getCity()))) {
 					QuadrantDistance test = new QuadrantDistance(kid, point);
 					if (!q.contains(test))
-					q.add(test);
+						q.add(test);
 				}
 			}
 			currNode = q.remove().quadtreeNode;
@@ -896,7 +904,7 @@ Node kid = g.children[i];
 				throw new IllegalArgumentException("Only leaf or internal node can be passed in");
 			}
 		}*/
-		
+
 		public QuadrantDistance(Node node, Point2D.Float pt) {
 			quadtreeNode = node;
 			if (node.getType() == Node.GRAY) {
