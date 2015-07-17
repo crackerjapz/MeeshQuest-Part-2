@@ -27,4 +27,22 @@ public class QEdge extends Line2D.Float {
 	public String getEndName(){
 		return end.getName();
 	}
+	
+	public boolean equals(final Object obj){
+		if (obj == this)
+			return true;
+		if (obj != null && (obj.getClass().equals(this.getClass()))) {
+			QEdge c = (QEdge) obj;
+			return (start.getName().equals(c.start.getName()) && 
+					end.getName().equals(c.end.getName()));
+		}
+		return false;
+	}
+	
+	public int hashCode() {
+		int hash = 11;
+		hash = 37 * hash + start.hashCode();
+		hash = 37 * hash + end.hashCode();
+		return hash;
+	}
 }

@@ -491,7 +491,8 @@ public class PM3QuadTree {
 	RoadOutOfBoundsException{
 
 		QEdge insert = new QEdge(start, end);
-		if (roadList.contains(insert)){
+		QEdge alt = new QEdge(end, start);
+		if (roadList.contains(insert) || roadList.contains(alt)){
 			throw new RoadAlreadyMappedException();
 		}
 
@@ -518,9 +519,9 @@ public class PM3QuadTree {
 		}
 	
 		//must take care of adding cities for the roads here:
-		QEdge road = new QEdge(start, end);
-		root.addRoad(road);
-		roadList.add(road);
+		//QEdge road = new QEdge(start, end);
+		root = root.addRoad(insert);
+		roadList.add(insert);
 	}
 	public void addIso(String name) {
 		isoCityNames.add(name);
