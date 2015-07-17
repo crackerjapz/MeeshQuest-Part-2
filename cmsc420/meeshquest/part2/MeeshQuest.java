@@ -31,7 +31,7 @@ public class MeeshQuest {
 	/**
 	 *  whether to open local XML test file or test on submit server. -Ruofei 
 	 */
-	private static final boolean LOCAL_TEST = false; 
+	private static final boolean LOCAL_TEST = true; 
 	private static final boolean GENERATE_JUNIT_SRC = false;
 	private static String testName = "";
 	
@@ -203,7 +203,7 @@ public class MeeshQuest {
 		} else if (name.equals("mapRoad")) {
 			command.processMapRoad(commandNode);
 		} else if (name.equals("rangeRoads")) {
-		//	command.processRangeRoads(commandNode);
+			command.processRangeRoads(commandNode);
 		} else if (name.equals("nearestRoad")) {
 			//command.processNearestRoad(commandNode);
 		} else if (name.equals("nearestCityToRoad")) {

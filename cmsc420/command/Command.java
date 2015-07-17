@@ -405,6 +405,13 @@ public class Command {
 		node.appendChild(cityNode);
 	}
 
+	private void addRoadNode(final Element node, final String roadNodeName,
+			final QEdge road) {
+		final Element roadNode = results.createElement(roadNodeName);
+		roadNode.setAttribute("end", road.getEndName());
+		roadNode.setAttribute("start", road.getStartName());
+		node.appendChild(roadNode);
+	}
 	/**
 	 * Creates a city node containing information about a city. Appends the city
 	 * node to the passed in node.
@@ -417,7 +424,9 @@ public class Command {
 	private void addCityNode(final Element node, final City city) {
 		addCityNode(node, "city", city);
 	}
-
+	private void addRoadNode(final Element node, final QEdge road) {
+		addRoadNode(node, "road", road);
+	}
 	/**
 	 * Maps a city to the spatial map.
 	 * 
@@ -705,8 +714,66 @@ public class Command {
 		}
 	}
 
+	
+
 	/**
-	 * Determines if any cities within the PR Quadtree not are within the radius
+	 * Finds the mapped cities within the range of a given point.
+	 * 
+	 * @param node
+	 *            rangeCities command to be processed
+	 * @throws IOException
+	 */
+	public void processRangeRoads(final Element node) throws IOException {
+		final Element commandNode = getCommandNode(node);
+		final Element parametersNode = results.createElement("parameters");
+		final Element outputNode = results.createElement("output");
+
+		final TreeSet<QEdge> roadsInRange = new TreeSet<QEdge>(
+				new RoadComparator());
+
+		/* extract values from command */
+		final int x = processIntegerAttribute(node, "x", parametersNode);
+		final int y = processIntegerAttribute(node, "y", parametersNode);
+		final int radius = processIntegerAttribute(node, "radius",
+				parametersNode);
+
+		String pathFile = "";
+		if (node.getAttribute("saveMap").compareTo("") != 0) {
+			pathFile = processStringAttribute(node, "saveMap", parametersNode);
+		}
+		/* get cities within range */
+		final Point2D.Double point = new Point2D.Double(x, y);
+		rangeRoadsHelper(point, radius, pmQuadtree.getRoot(), roadsInRange);
+
+		/* print out cities within range */
+		if (roadsInRange.isEmpty()) {
+			addErrorNode("noRoadsExistInRange", commandNode, parametersNode);
+		} else {
+			/* get road list */
+			final Element roadListNode = results.createElement("roadList");
+			for (QEdge road : roadsInRange) {
+				addRoadNode(roadListNode, road);
+			}
+			outputNode.appendChild(roadListNode);
+
+			/* add success node to results */
+			addSuccessNode(commandNode, parametersNode, outputNode);
+
+			if (pathFile.compareTo("") != 0) {
+				/* save canvas to file with range circle */
+				if(radius != 0) {
+					Canvas.instance.addCircle(x, y, radius, Color.BLUE, false);
+				}
+				Canvas.instance.save(pathFile);
+				if(radius != 0) {
+					Canvas.instance.removeCircle(x, y, radius, Color.BLUE, false);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Determines if any roads within the PM Quadtree not are within the radius
 	 * of a given point.
 	 * 
 	 * @param point
@@ -742,6 +809,40 @@ public class Command {
 		}
 	}
 
+	private void rangeRoadsHelper(final Point2D.Double point,
+			final int radius, final Node node, final TreeSet<QEdge> roadsInRange) {
+		
+		final Circle2D.Double circle = new Circle2D.Double(point, radius);
+		
+		if (node.getType() == Node.BLACK && ((Black) node).getRoadsSize() > 0) {
+			final Black black = (Black) node;
+			HashSet<QEdge> roads = black.getRoads();
+			
+			for (QEdge road : roads){
+				final double distance = road.ptLineDist(point);
+				if (distance <= radius){
+					roadsInRange.add(road);
+				}
+			}
+			/*final double distance = point.distance(black.getCity().toPoint2D());
+			if (distance <= radius) {
+				/* city is in range 
+				final City city = black.getCity();
+				roadsInRange.add(city);
+			}*/
+		} else if (node.getType() == Node.GRAY) {
+			/* check each quadrant of internal node */
+			final Gray gray = (Gray) node;
+
+			//final Circle2D.Double circle = new Circle2D.Double(point, radius);
+			for (int i = 0; i < 4; i++) {
+				if (pmQuadtree.intersects(circle, gray.getChildRegion(i))) {
+					rangeRoadsHelper(point, radius, gray.getChild(i),
+							roadsInRange);
+				}
+			}
+		}
+	}
 	/**
 	 * Finds the nearest city to a given point.
 	 * 
