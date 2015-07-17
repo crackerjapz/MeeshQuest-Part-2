@@ -31,7 +31,7 @@ public class MeeshQuest {
 	/**
 	 *  whether to open local XML test file or test on submit server. -Ruofei 
 	 */
-	private static final boolean LOCAL_TEST = false; 
+	private static final boolean LOCAL_TEST = true; 
 	private static final boolean GENERATE_JUNIT_SRC = false;
 	private static String testName = "";
 	
