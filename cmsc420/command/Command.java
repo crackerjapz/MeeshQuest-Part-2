@@ -574,6 +574,7 @@ public class Command {
 		} else {
 			/* print PR Quadtree */
 			final Element quadtreeNode = results.createElement("quadtree");
+			quadtreeNode.setAttribute("order", "3");
 			printPMQuadtreeHelper(pmQuadtree.getRoot(), quadtreeNode);
 
 			outputNode.appendChild(quadtreeNode);
