@@ -614,8 +614,12 @@ public class Command {
 				final Element black = results.createElement("black");
 
 				if (currentBlack.hasCity()){
-					card++; 
-					final Element city = results.createElement("city");
+					card++;
+					String title = "city";
+					if (pmQuadtree.isInIso(currentBlack.getCity())){
+						title = "isolatedCity";
+					}
+					final Element city = results.createElement(title);
 					city.setAttribute("name", currentBlack.getCity().getName());
 					city.setAttribute("color", currentBlack.getCity().getColor());
 					city.setAttribute("x", Integer.toString((int) currentBlack
