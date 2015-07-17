@@ -820,7 +820,7 @@ public class Command {
 		
 		if (node.getType() == Node.BLACK && ((Black) node).getRoadsSize() > 0) {
 			final Black black = (Black) node;
-			HashSet<QEdge> roads = black.getRoads();
+			TreeSet<QEdge> roads = black.getRoads();
 			
 			for (QEdge road : roads){
 				final double distance = road.ptLineDist(point);

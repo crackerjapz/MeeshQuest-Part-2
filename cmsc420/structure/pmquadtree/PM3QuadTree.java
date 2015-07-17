@@ -6,6 +6,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D.Float;
 import java.util.HashSet;
+import java.util.TreeSet;
 
 import cmsc420.exception.CityAlreadyMappedException;
 import cmsc420.exception.CityOutOfBoundsException;
@@ -13,6 +14,7 @@ import cmsc420.exception.RoadAlreadyMappedException;
 import cmsc420.exception.RoadOutOfBoundsException;
 import cmsc420.geom.Circle2D;
 import cmsc420.structure.City;
+import cmsc420.structure.RoadComparator;
 import cmsc420.utils.Canvas;
 import cmsc420.utils.Lib;
 
@@ -41,7 +43,7 @@ public class PM3QuadTree {
 	protected HashSet<String> cityNames;
 
 	/** used to keep track of roads within the spatial map */
-	protected HashSet<QEdge> roadList;
+	protected TreeSet<QEdge> roadList;
 
 	/**used to keep track of isolated cities within the map */
 	protected HashSet<String> isoCityNames;
@@ -51,7 +53,7 @@ public class PM3QuadTree {
 		spatialOrigin = new Point2D.Float(0, 0);
 		cityNames = new HashSet<String>();
 		isoCityNames = new HashSet<String>();
-		roadList = new HashSet<QEdge>();
+		roadList = new TreeSet<QEdge>(new RoadComparator());
 	}
 	//sets up the PMQuadTree
 	public void setRange(int spatialWidth, int spatialHeight) {
@@ -219,7 +221,7 @@ public class PM3QuadTree {
 	}
 
 	public class Black extends Node {
-		HashSet <QEdge> roads = new HashSet<QEdge>();
+		TreeSet <QEdge> roads = new TreeSet<QEdge>(new RoadComparator());
 		City city = null;
 
 		public Black(){
@@ -282,7 +284,7 @@ public class PM3QuadTree {
 			return roads.size();
 		}
 		
-		public HashSet<QEdge> getRoads(){
+		public TreeSet<QEdge> getRoads(){
 			return roads;
 		}
 	}
@@ -491,8 +493,14 @@ public class PM3QuadTree {
 	RoadOutOfBoundsException{
 
 		QEdge insert = new QEdge(start, end);
-		QEdge alt = new QEdge(end, start);
-		if (roadList.contains(insert) || roadList.contains(alt)){
+		if (start.getName().compareTo(end.getName()) > 0 ){
+			insert = new QEdge(end, start);
+		}
+		
+		
+		
+		//QEdge alt = new QEdge(end, start);
+		if (roadList.contains(insert) ){
 			throw new RoadAlreadyMappedException();
 		}
 
